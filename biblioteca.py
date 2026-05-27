@@ -12,8 +12,6 @@ def _cosa(a, b="", c=0):
     else:
         print(str(a))
 
-print("Atienza pollo")
-
 def _mover(que, valor):
     if que == "p":
         valor["disponible"] = False
