@@ -3,7 +3,6 @@ bd = libros
 modo = "normal"
 ultimo_error = ""
 
-
 def _cosa(a, b="", c=0):
     if c == 1:
         print(a + b)
