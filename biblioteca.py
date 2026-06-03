@@ -1,3 +1,6 @@
+from DTO.Libro import Libro
+from DAO.DAO_libro import DAO_libro
+
 from Usuario import Usuario
 from UsuarioDAO import UsuarioDAO
 
@@ -7,10 +10,11 @@ libros = []
 bd = libros
 modo = "normal"
 ultimo_error = ""
+proximo_id = 1
 
-# =========================
-# FUNCIONES BIBLIOTECA
-# =========================
+    #=========================
+    #FUNCIONES BIBLIOTECA
+    #=========================
 
 """muestra mensaje resutlado de realizar acciones del programa"""
 def mostrar_mensaje(mensaje, titulo="", tipo=0):
@@ -24,34 +28,35 @@ def mostrar_mensaje(mensaje, titulo="", tipo=0):
 """Cambia el estado del libro a prestado o disponible para su prestación segun la accion requerida y el estado actual del libro"""
 def cambiar_estado_libro(accion, libro):
     if accion == "prestar":
-        libro["disponible"] = False
+        libro.disponible = False
         mostrar_mensaje("Se presto el libro", tipo=2)
         return "Libro prestado"
 
     if accion == "devolver":
-        libro["disponible"] = True
+        libro.disponible= True
         mostrar_mensaje("Se devolvio el libro", tipo=2)
         return "Libro devuelto"
 
     return "Accion no reconocida"
 
 """Crea un libro con los atributos introducidos"""
-def crear_libro(titulo, autor):
-    return {
-        "titulo": titulo,
-        "autor": autor,
-        "disponible": True
-    }
+def crear_libro(titulo, autor, isbn=None):
+    global proximo_id
+
+    nuevo_libro = Libro(proximo_id, titulo, autor, disponible=True, isbn=isbn)
+    proximo_id += 1
+
+    return nuevo_libro
 
 """Agrega el libro creado a la base de datos. Comprobando el modo actual(Ya veremos para que sirve)"""
-def agregar_libro(titulo, autor):
+def agregar_libro(titulo, autor, isbn=None):
     global ultimo_error
 
     if modo != "normal":
         ultimo_error = "modo desconocido"
         return
 
-    nuevo_libro = crear_libro(titulo, autor)
+    nuevo_libro = crear_libro(titulo, autor,isbn)
     bd.append(nuevo_libro)
     ultimo_error = ""
 
@@ -76,7 +81,7 @@ def prestar_libro(titulo):
         ultimo_error = "Libro no encontrado"
         return "Libro no encontrado"
 
-    if not libro["disponible"]:
+    if not libro.disponible:
         mostrar_mensaje("El libro no esta disponible", tipo=2)
         ultimo_error = "Libro no disponible"
         return "Libro no disponible"
@@ -245,3 +250,119 @@ def deshabilita_usuario(id_usuario):
     except Exception as e:
         ultimo_error = str(e)
         return False
+
+    #=========================
+    #FUNCIONES LIBRO
+    #=========================
+"""DAO de libro con los 4 metodos crear, eliminar, listar, update """
+
+def add_libro(libro):
+    """Añade un objeto Libro a la base de datos de la biblioteca usando el DAO."""
+    global ultimo_error
+    try:
+        """Llamamos a tu método pasándole los datos"""
+        nuevo_id = DAO_libro.insertar_en_bd(libro.titulo, libro.autor, libro.disponible, libro.isbn)
+        libro.id = nuevo_id
+        bd.append(libro)
+        ultimo_error = ""
+        return True
+    except Exception as e:
+        """Si falla guardamos el error"""
+        ultimo_error = str(e)
+        return False
+
+
+def remove_libro(id_libro):
+    """Elimina un libro de la biblioteca usando su identificador único."""
+    global ultimo_error
+
+    """Primero comprobamos si el libro existe"""
+    libro_existente = DAO_libro.seleccionar_por_id(id_libro)
+
+    if libro_existente is None:
+        ultimo_error = "Libro no encontrado"
+        return False
+
+    """Segundo si el libro existe, llamamos al DAO para que lo borre físicamente de la BD"""
+    DAO_libro.borrar_de_bd(id_libro)
+
+    """Tercero borramos de tu lista 'bd' antigua en memoria para que coincidan"""
+    for l in bd:
+        if l.id == id_libro:
+           bd.remove(l)
+           break
+
+    ultimo_error = ""
+    return True
+
+
+def get_libro(id_libro):
+    """Obtiene un libro específico mediante su ID desde la base de datos."""
+    global ultimo_error
+    """Le pedimos al DAO que busque ese libro por ID"""
+    libro = DAO_libro.seleccionar_por_id(id_libro)
+
+    if libro is None:
+        ultimo_error = "Libro no encontrado"
+        return None
+
+    ultimo_error = ""
+    return libro
+
+
+def list_libros():
+    """Devuelve la lista con todos los libros guardados en la base de datos."""
+    global bd
+
+    """Le pedimos al DAO que traiga todas las filas convertidas en objetos Libro"""
+    todos_los_libros = DAO_libro.seleccionar_todos()
+
+    """Sincronizamos tu lista 'bd' global con los datos reales de la base de datos"""
+    bd = todos_los_libros
+
+    return todos_los_libros
+
+"""Busquedas obligatorias"""
+def buscar_por_disponibilidad(estado_disponible):
+    """Busca libros según su estado: disponibles (True) o prestados (False)."""
+    """Primero pedimos la lista actualizada de libros que viene de la base de datos"""
+    todos = list_libros()
+
+    """Segundo creamos una lista vacía en donde meteremos los que coincidan"""
+    resultados = []
+
+    """Tercero revisamos los libros"""
+    for l in todos:
+        """Si la disponibilidad del libro es igual a la que busca el usuario"""
+        if l.disponible == estado_disponible:
+            resultados.append(l)
+            """Guardamos el libro en nuestra lista"""
+
+    """Devolvemos los libros encontrados"""
+    return resultados
+
+
+def buscar_por_titulo(titulo_buscar):
+    """Busca libros cuyo título coincida exactamente."""
+    todos = list_libros()
+    resultados = []
+
+    for l in todos:
+        """Usamos .lower() en ambos lados para que no importe si el usuario"""
+        if l.titulo.lower() == titulo_buscar.lower():
+            resultados.append(l)
+
+    return resultados
+
+
+def buscar_por_autor(autor_buscar):
+    """Busca libros escritos por un autor específico."""
+    todos = list_libros()
+    resultados = []
+
+    for l in todos:
+        """Es la misma lógica que el título"""
+        if l.autor.lower() == autor_buscar.lower():
+            resultados.append(l)
+
+    return resultados
