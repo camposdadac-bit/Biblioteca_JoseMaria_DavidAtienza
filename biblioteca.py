@@ -58,67 +58,58 @@ def buscar_libro(titulo):
 
 def prestar_libro(titulo):
     global ultimo_error
-    r = "Libro no encontrado"
-    i = 0
-    while i < len(libros):
-        x = libros[i]
-        if x["titulo"] == titulo:
-            if x["disponible"] == True:
-                r = cambiar_estado_libro("p", x)
-                ultimo_error = ""
-                i = len(libros) + 100
-            else:
-                mostrar_mensaje("El libro no esta disponible", "", 2)
-                r = "Libro no disponible"
-                ultimo_error = r
-                i = len(libros) + 100
-        else:
-            i = i + 1
 
-    if r == "Libro no encontrado":
-        mostrar_mensaje("No se encontro el libro", "", 2)
-        ultimo_error = r
+    libro = buscar_libro(titulo)
 
-    return r
+    if libro is None:
+        mostrar_mensaje("No se encontro el libro", tipo=2)
+        ultimo_error = "Libro no encontrado"
+        return "Libro no encontrado"
+
+    if not libro["disponible"]:
+        mostrar_mensaje("El libro no esta disponible", tipo=2)
+        ultimo_error = "Libro no disponible"
+        return "Libro no disponible"
+
+    ultimo_error = ""
+    return cambiar_estado_libro("prestar", libro)
 
 
 def devolver_libro(titulo):
     global ultimo_error
-    data = buscar_libro(titulo)
-    if data is None:
-        mostrar_mensaje("No se encontro el libro", "", 2)
+
+    libro = buscar_libro(titulo)
+
+    if libro is None:
+        mostrar_mensaje("No se encontro el libro", tipo=2)
         ultimo_error = "Libro no encontrado"
         return "Libro no encontrado"
-    else:
-        if data["disponible"] == False:
-            ultimo_error = ""
-            return cambiar_estado_libro("d", data)
-        else:
-            if data["disponible"] != False:
-                mostrar_mensaje("El libro ya estaba disponible", "", 2)
-                ultimo_error = "Libro ya disponible"
-                return "Libro ya disponible"
+
+    if libro["disponible"]:
+        mostrar_mensaje("El libro ya estaba disponible", tipo=2)
+        ultimo_error = "Libro ya disponible"
+        return "Libro ya disponible"
+
+    ultimo_error = ""
+    return cambiar_estado_libro("devolver", libro)
+
+
+def obtener_estado(disponible):
+    return "Disponible" if disponible else "Prestado"
+
+
+def simulacion_toString(libro):
+    return (
+        f"{libro['titulo']} - "
+        f"{libro['autor']} - "
+        f"{obtener_estado(libro['disponible'])}"
+    )
 
 
 def mostrar_libros():
-    contador = 0
-    if len(bd) == 0:
-        mostrar_mensaje("No hay libros", "", 2)
-    else:
-        while contador < len(bd):
-            x = bd[contador]
-            estado = ""
-            if x["disponible"] == True:
-                estado = estado + "Disponible"
-            else:
-                if x["disponible"] == False:
-                    estado = estado + "Prestado"
-            salida = ""
-            partes = [x["titulo"], x["autor"], estado]
-            for p in partes:
-                if salida == "":
-                    salida = p
-                else:
-                    salida = salida + " - " + p
-            print(salida)
-            contador = contador + 1
+    if not bd:
+        mostrar_mensaje("No hay libros", tipo=2)
+        return
+
+    for libro in bd:
+        print(simulacion_toString(libro))
