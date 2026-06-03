@@ -1,7 +1,3 @@
-"""
-Tests para Usuario.py y UsuarioDAO.py — cobertura 100% (Versión unittest)
-Ambas clases en el mismo archivo de test según lo solicitado.
-"""
 import sqlite3
 import unittest
 from unittest.mock import patch
