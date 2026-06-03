@@ -1,7 +1,7 @@
 import unittest
 import biblioteca
 
-class TestBiblioteca(unittest.TestCase):
+class test_biblioteca(unittest.TestCase):
     def setUp(self):
         biblioteca.libros.clear()
         biblioteca.ultimo_error = ""

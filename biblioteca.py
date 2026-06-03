@@ -1,5 +1,5 @@
-import Usuario
-import UsuarioDAO
+from Usuario import Usuario
+from UsuarioDAO import UsuarioDAO
 
 usuarioDAO = UsuarioDAO()
 usuarios = []
@@ -143,7 +143,7 @@ def add_usuario(usuario):
 def remove_usuario(id_usuario):
     global ultimo_error
 
-    usuario_existente = usuarioDAO.seleccionar_por_id(id_usuario)
+    usuario_existente = usuarioDAO.get_usuario_id_bd(id_usuario)
 
     if usuario_existente is None:
         ultimo_error = "Usuario no encontrado"
@@ -163,7 +163,7 @@ def remove_usuario(id_usuario):
 def get_usuario(id_usuario):
     global ultimo_error
 
-    usuario = usuarioDAO.seleccionar_por_id(id_usuario)
+    usuario = usuarioDAO.get_usuario_id_bd(id_usuario)
 
     if usuario is None:
         ultimo_error = "Usuario no encontrado"
