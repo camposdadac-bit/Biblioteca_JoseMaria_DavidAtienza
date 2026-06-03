@@ -1,5 +1,7 @@
 import Usuario
+import UsuarioDAO
 
+usuarioDAO = UsuarioDAO()
 usuarios = []
 libros = []
 bd = libros
@@ -125,54 +127,57 @@ def mostrar_libros():
 def add_usuario(usuario):
     global ultimo_error
 
-    if not isinstance(usuario, Usuario):
-        ultimo_error = "Objeto inválido"
-        return
+    try:
+        nuevo_id = usuarioDAO.add_usuario_bd(usuario)
 
-    usuarios.append(usuario)
-    ultimo_error = ""
+        usuario.id = nuevo_id
+        usuarios.append(usuario)
+        ultimo_error = ""
+        return True
 
-def remove_usuario(id):
+    except Exception as e:
+        ultimo_error = str(e)
+        return False
+
+
+def remove_usuario(id_usuario):
     global ultimo_error
 
-    for u in usuarios:
-        if u.id == id:
-            usuarios.remove(u)
-            ultimo_error = ""
-            return "Usuario eliminado"
+    usuario_existente = usuarioDAO.seleccionar_por_id(id_usuario)
 
-    ultimo_error = "Usuario no encontrado"
-    return "Usuario no encontrado"
+    if usuario_existente is None:
+        ultimo_error = "Usuario no encontrado"
+        return False
 
-def get_usuario(id):
-    for u in usuarios:
-        if u.id == id:
-            return u
-    return None
+    usuarioDAO.borrar_de_bd(id_usuario)
+
+    for usuario in usuarios:
+        if usuario.id == id_usuario:
+            usuarios.remove(usuario)
+            break
+
+    ultimo_error = ""
+    return True
+
+
+def get_usuario(id_usuario):
+    global ultimo_error
+
+    usuario = usuarioDAO.seleccionar_por_id(id_usuario)
+
+    if usuario is None:
+        ultimo_error = "Usuario no encontrado"
+        return None
+
+    ultimo_error = ""
+    return usuario
+
 
 def list_usuarios():
-    return usuarios
+    global usuarios
 
-def habilita_usuario(id):
-    global ultimo_error
+    todos_los_usuarios = usuarioDAO.seleccionar_todos()
 
-    for u in usuarios:
-        if u.id == id:
-            u.habilitado = True
-            ultimo_error = ""
-            return "Usuario habilitado"
+    usuarios = todos_los_usuarios
 
-    ultimo_error = "Usuario no encontrado"
-    return "Usuario no encontrado"
-
-def deshabilita_usuario(id):
-    global ultimo_error
-
-    for u in usuarios:
-        if u.id == id:
-            u.habilitado = False
-            ultimo_error = ""
-            return "Usuario deshabilitado"
-
-    ultimo_error = "Usuario no encontrado"
-    return "Usuario no encontrado"
+    return todos_los_usuarios
