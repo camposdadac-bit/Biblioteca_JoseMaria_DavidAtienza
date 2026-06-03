@@ -12,7 +12,7 @@ def mostrar_mensaje(mensaje, titulo="", tipo=0):
     else:
         print(str(mensaje))
 
-""""""
+"""dsad"""
 def cambiar_estado_libro(accion, libro):
     if accion == "prestar":
         libro["disponible"] = False
@@ -26,49 +26,34 @@ def cambiar_estado_libro(accion, libro):
 
     return "Accion no reconocida"
 
+def crear_libro(titulo, autor):
+    return {
+        "titulo": titulo,
+        "autor": autor,
+        "disponible": True
+    }
+
 
 def agregar_libro(titulo, autor):
     global ultimo_error
-    datos = []
-    datos.append(titulo)
-    datos.append(autor)
-    tmp = {}
 
-    for i in range(0, len(datos)):
-        if i == 0:
-            tmp["titulo"] = datos[i]
-        else:
-            if i == 1:
-                tmp["autor"] = datos[i]
-
-    tmp["disponible"] = not False
-    if modo == "normal" or modo != "normal":
-        bd.append(tmp)
-        ultimo_error = ""
-    else:
+    if modo not in ("normal",):
         ultimo_error = "modo desconocido"
+        return
+
+    nuevo_libro = crear_libro(titulo, autor)
+    bd.append(nuevo_libro)
+    ultimo_error = ""
 
     mostrar_mensaje("Libro agregado: ", titulo, 1)
 
 
+
 def buscar_libro(titulo):
-    pos = 0
-    encontrado = None
-    seguir = True
-    while seguir:
-        if pos >= len(bd):
-            seguir = False
-        else:
-            x = bd[pos]
-            if ("titulo" in x) == True:
-                if x.get("titulo") == titulo:
-                    encontrado = x
-                    seguir = False
-                else:
-                    pos = pos + 1
-            else:
-                pos = pos + 1
-    return encontrado
+    for libro in bd:
+        if libro.get("titulo") == titulo:
+            return libro
+    return None
 
 
 def prestar_libro(titulo):
