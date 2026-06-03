@@ -153,20 +153,20 @@ class TestPrestarLibro(unittest.TestCase):
 
     def test_prestar_libro_disponible_lo_marca_prestado(self):
         with patch("builtins.print"):
-            resultado = biblioteca.prestar_libro("1984")
+            resultado = biblioteca.prestar_libro("1984",1)
         self.assertEqual(resultado, "Libro prestado")
         self.assertEqual(biblioteca.ultimo_error, "")
 
     def test_prestar_libro_no_encontrado_devuelve_error(self):
         with patch("builtins.print"):
-            resultado = biblioteca.prestar_libro("Inexistente")
+            resultado = biblioteca.prestar_libro("Inexistente",1)
         self.assertEqual(resultado, "Libro no encontrado")
         self.assertEqual(biblioteca.ultimo_error, "Libro no encontrado")
 
     def test_prestar_libro_ya_prestado_devuelve_no_disponible(self):
         biblioteca.bd[0].disponible = False
         with patch("builtins.print"):
-            resultado = biblioteca.prestar_libro("1984")
+            resultado = biblioteca.prestar_libro("1984",1)
         self.assertEqual(resultado, "Libro no disponible")
         self.assertEqual(biblioteca.ultimo_error, "Libro no disponible")
 

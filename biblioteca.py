@@ -1,8 +1,13 @@
+from datetime import date, timedelta
+from xmlrpc.client import DateTime
+
+from DAO.PrestamoDAO import PrestamoDAO
 from DTO.Libro import Libro
 from DAO.DAO_libro import DAO_libro
 
 from DAO.UsuarioDAO import UsuarioDAO
 
+prestamoDAO = PrestamoDAO()
 usuarioDAO = UsuarioDAO()
 usuarios = []
 libros = []
@@ -28,6 +33,7 @@ def mostrar_mensaje(mensaje, titulo="", tipo=0):
 def cambiar_estado_libro(accion, libro):
     if accion == "prestar":
         libro.disponible = False
+        DAO_libro.modificar_en_bd(libro.id,libro.titulo,libro.autor,False,libro.isbn)
         mostrar_mensaje("Se presto el libro", tipo=2)
         return "Libro prestado"
 
@@ -70,21 +76,24 @@ def buscar_libro(titulo):
     return None
 
 """Revisa que el titulo introducido pertenece a un libro existente y disponible y en ese caso lo presta. Cambiando su estado a prestado con el metodo encargado de ello (cambiar_estado_libro)"""
-def prestar_libro(titulo):
+def prestar_libro(titulo,id_usuario):
     global ultimo_error
-
     libro = buscar_libro(titulo)
-
+    fechaactual = date.today()
+    fechadevolucion = fechaactual+timedelta(days=30)
     if libro is None:
         mostrar_mensaje("No se encontro el libro", tipo=2)
         ultimo_error = "Libro no encontrado"
         return "Libro no encontrado"
 
-    if not libro.disponible:
+    prestado = prestamoDAO.tiene_prestamo_activo(libro.id)
+
+    if prestado:
         mostrar_mensaje("El libro no esta disponible", tipo=2)
         ultimo_error = "Libro no disponible"
         return "Libro no disponible"
 
+    prestamoDAO.registrar_prestamo(libro.id,id_usuario,fechaactual,fechadevolucion)
     ultimo_error = ""
     return cambiar_estado_libro("prestar", libro)
 
