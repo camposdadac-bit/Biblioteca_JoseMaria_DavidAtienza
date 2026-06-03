@@ -3,24 +3,28 @@ bd = libros
 modo = "normal"
 ultimo_error = ""
 
-def _cosa(a, b="", c=0):
-    if c == 1:
-        print(a + b)
-    elif c == 2:
-        print(a)
+"""muestra mensaje"""
+def mostrar_mensaje(mensaje, titulo="", tipo=0):
+    if tipo == 1:
+        print(mensaje + titulo)
+    elif tipo == 2:
+        print(mensaje)
     else:
-        print(str(a))
+        print(str(mensaje))
 
-def _mover(que, valor):
-    if que == "p":
-        valor["disponible"] = False
-        _cosa("Se presto el libro", "", 2)
+""""""
+def cambiar_estado_libro(accion, libro):
+    if accion == "prestar":
+        libro["disponible"] = False
+        mostrar_mensaje("Se presto el libro", tipo=2)
         return "Libro prestado"
-    if que == "d":
-        valor["disponible"] = True
-        _cosa("Se devolvio el libro", "", 2)
+
+    if accion == "devolver":
+        libro["disponible"] = True
+        mostrar_mensaje("Se devolvio el libro", tipo=2)
         return "Libro devuelto"
-    return "Nada"
+
+    return "Accion no reconocida"
 
 
 def agregar_libro(titulo, autor):
@@ -44,7 +48,7 @@ def agregar_libro(titulo, autor):
     else:
         ultimo_error = "modo desconocido"
 
-    _cosa("Libro agregado: ", titulo, 1)
+    mostrar_mensaje("Libro agregado: ", titulo, 1)
 
 
 def buscar_libro(titulo):
@@ -75,11 +79,11 @@ def prestar_libro(titulo):
         x = libros[i]
         if x["titulo"] == titulo:
             if x["disponible"] == True:
-                r = _mover("p", x)
+                r = cambiar_estado_libro("p", x)
                 ultimo_error = ""
                 i = len(libros) + 100
             else:
-                _cosa("El libro no esta disponible", "", 2)
+                mostrar_mensaje("El libro no esta disponible", "", 2)
                 r = "Libro no disponible"
                 ultimo_error = r
                 i = len(libros) + 100
@@ -87,7 +91,7 @@ def prestar_libro(titulo):
             i = i + 1
 
     if r == "Libro no encontrado":
-        _cosa("No se encontro el libro", "", 2)
+        mostrar_mensaje("No se encontro el libro", "", 2)
         ultimo_error = r
 
     return r
@@ -97,16 +101,16 @@ def devolver_libro(titulo):
     global ultimo_error
     data = buscar_libro(titulo)
     if data is None:
-        _cosa("No se encontro el libro", "", 2)
+        mostrar_mensaje("No se encontro el libro", "", 2)
         ultimo_error = "Libro no encontrado"
         return "Libro no encontrado"
     else:
         if data["disponible"] == False:
             ultimo_error = ""
-            return _mover("d", data)
+            return cambiar_estado_libro("d", data)
         else:
             if data["disponible"] != False:
-                _cosa("El libro ya estaba disponible", "", 2)
+                mostrar_mensaje("El libro ya estaba disponible", "", 2)
                 ultimo_error = "Libro ya disponible"
                 return "Libro ya disponible"
 
@@ -114,7 +118,7 @@ def devolver_libro(titulo):
 def mostrar_libros():
     contador = 0
     if len(bd) == 0:
-        _cosa("No hay libros", "", 2)
+        mostrar_mensaje("No hay libros", "", 2)
     else:
         while contador < len(bd):
             x = bd[contador]
