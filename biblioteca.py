@@ -1,5 +1,5 @@
 from DTO.Libro import Libro
-from crud.crud_libro import LibroDAO
+from DAO.DAO_libro import LibroDAO
 
 libros = []
 bd = libros
@@ -120,42 +120,116 @@ def mostrar_libros():
     for libro in bd:
         print(simulacion_toString(libro))
 
+
+"""DAO de libro con los 4 metodos crear, eliminar, listar, update """
 def add_libro(libro):
-    """Añade un objeto Libro a la base de datos usando el DAO."""
+    """Añade un objeto Libro a la base de datos de la biblioteca usando el DAO."""
     global ultimo_error
     try:
-        LibroDAO.crear(libro)
-        bd.append(libro)  # Sincronizamos con tu lista vieja por si acaso
+        """Llamamos a tu método pasándole los datos del objeto libro uno a uno"""
+        nuevo_id = LibroDAO.insertar_en_bd(libro.titulo, libro.autor, libro.disponible, libro.isbn)
+        """ Le asignamos al objeto libro el ID real que le dio SQLite"""
+        libro.id = nuevo_id
+        """ Lo guardamos en tu lista antigua 'bd' para mantener la compatibilidad en memoria"""
+        bd.append(libro)
         ultimo_error = ""
         return True
     except Exception as e:
+        """Si falla algo (por ejemplo, base de datos desconectada), guardamos el error"""
         ultimo_error = str(e)
         return False
 
+
 def remove_libro(id_libro):
-    """Elimina un libro de la biblioteca por su ID a través del DAO."""
+    """Elimina un libro de la biblioteca usando su identificador único."""
     global ultimo_error
-    libro_existente = LibroDAO.obtener_por_id(id_libro)
+
+    """Primero comprobamos si el libro existe de verdad usando tu método del DAO"""
+    libro_existente = LibroDAO.seleccionar_por_id(id_libro)
+
     if libro_existente is None:
         ultimo_error = "Libro no encontrado"
         return False
-    LibroDAO.eliminar(id_libro)
+
+    """Segundo si el libro existe, llamamos al DAO para que lo borre físicamente de la BD"""
+    LibroDAO.borrar_de_bd(id_libro)
+
+    """Tercero borramos de tu lista 'bd' antigua en memoria para que coincidan"""
+    for l in bd:
+        if l.id == id_libro:
+           bd.remove(l)
+           break
+
     ultimo_error = ""
     return True
 
+
 def get_libro(id_libro):
-    """Obtiene un libro específico mediante el DAO."""
+    """Obtiene un libro específico mediante su ID desde la base de datos."""
     global ultimo_error
-    libro = LibroDAO.obtener_por_id(id_libro)
+    """Le pedimos al DAO que busque ese libro por ID"""
+    libro = LibroDAO.seleccionar_por_id(id_libro)
+
     if libro is None:
         ultimo_error = "Libro no encontrado"
         return None
+
     ultimo_error = ""
     return libro
 
+
 def list_libros():
-    """Devuelve la lista con todos los libros traídos por el DAO."""
+    """Devuelve la lista con todos los libros guardados en la base de datos."""
     global bd
-    todos_los_libros = LibroDAO.obtener_todos()
-    bd = todos_los_libros  # Actualizamos tu lista 'bd' global
+
+    """Le pedimos al DAO que traiga todas las filas convertidas en objetos Libro"""
+    todos_los_libros = LibroDAO.seleccionar_todos()
+
+    """Sincronizamos tu lista 'bd' global con los datos reales de la base de datos"""
+    bd = todos_los_libros
+
     return todos_los_libros
+
+
+def buscar_por_disponibilidad(estado_disponible):
+    """Busca libros según su estado: disponibles (True) o prestados (False)."""
+    """Primero pedimos la lista actualizada de libros que viene de la base de datos"""
+    todos = list_libros()
+
+    """Segundo creamos una lista vacía en donde meteremos los que coincidan"""
+    resultados = []
+
+    """Tercero revisamos los libros uno por uno con un bucle for"""
+    for l in todos:
+        """Si la disponibilidad del libro es igual a la que busca el usuario:"""
+        if l.disponible == estado_disponible:
+            resultados.append(l)  # Guardamos el libro en nuestra lista
+
+    """Por ultimo devolvemos la lista con los libros encontrados"""
+    return resultados
+
+
+def buscar_por_titulo(titulo_buscar):
+    """Busca libros cuyo título coincida exactamente."""
+    todos = list_libros()
+    resultados = []
+
+    for l in todos:
+        """Usamos .lower() en ambos lados para que no importe si el usuario"""
+        if l.titulo.lower() == titulo_buscar.lower():
+            resultados.append(l)
+
+    return resultados
+
+
+def buscar_por_autor(autor_buscar):
+    """Busca libros escritos por un autor específico."""
+    todos = list_libros()
+    resultados = []
+
+    for l in todos:
+        """Es la misma lógica que el título"""
+        if l.autor.lower() == autor_buscar.lower():
+            resultados.append(l)
+
+    return resultados
