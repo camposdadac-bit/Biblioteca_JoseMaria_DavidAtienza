@@ -1,7 +1,3 @@
-"""
-Tests para biblioteca.py
-Cubre todas las ramas posibles para alcanzar el 100% de coverage.
-"""
 import unittest
 from unittest.mock import patch, MagicMock
 import sys
@@ -229,6 +225,9 @@ class TestMostrarLibros(unittest.TestCase):
             mock_print.assert_called_once_with("Odisea - Homero - Disponible")
 
 
+    #=========================
+    #TESTING LIBRO
+    #=========================
 class TestAddLibro(unittest.TestCase):
     """Cubre add_libro: inserción exitosa y fallo con excepción."""
 
