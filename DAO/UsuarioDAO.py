@@ -1,6 +1,6 @@
 import sqlite3
 from pathlib import Path
-from Usuario import Usuario
+from DTO.Usuario import Usuario
 
 RUTA_BD = Path(__file__).resolve().parent.parent / "bd" / "biblioteca.db"
 

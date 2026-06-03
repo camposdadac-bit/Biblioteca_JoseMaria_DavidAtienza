@@ -4,7 +4,7 @@ Ambas clases en el mismo archivo de test según lo solicitado.
 """
 import sqlite3
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import sys
 import os
 import shutil
@@ -13,8 +13,8 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from Usuario import Usuario
-from UsuarioDAO import UsuarioDAO
+from DTO.Usuario import Usuario
+from DAO.UsuarioDAO import UsuarioDAO
 
 
 # ===========================================================================

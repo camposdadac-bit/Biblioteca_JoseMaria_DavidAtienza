@@ -1,8 +1,7 @@
 from DTO.Libro import Libro
 from DAO.DAO_libro import DAO_libro
 
-from Usuario import Usuario
-from UsuarioDAO import UsuarioDAO
+from DAO.UsuarioDAO import UsuarioDAO
 
 usuarioDAO = UsuarioDAO()
 usuarios = []

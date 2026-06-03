@@ -2,14 +2,13 @@ import unittest
 from unittest.mock import patch, MagicMock
 import sys
 import os
-import io
 
 # Añadimos la raíz del proyecto al path para que los imports funcionen
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import biblioteca
 from DTO.Libro import Libro
-from Usuario import Usuario
+from DTO.Usuario import Usuario
 
 class TestBibliotecaBase(unittest.TestCase):
     def setUp(self):
