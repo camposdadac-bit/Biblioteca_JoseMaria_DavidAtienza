@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS prestamos (
     usuario_id INTEGER NOT NULL,
     fecha_prestamo TEXT NOT NULL DEFAULT (DATE('now')),
     fecha_devolucion TEXT,
-    estado TEXT NOT NULL DEFAULT 'prestado',
     FOREIGN KEY (libro_id) REFERENCES libros(id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
 );

@@ -6,50 +6,71 @@ RUTA_BD = Path(__file__).resolve().parent.parent / "bd" / "biblioteca.db"
 
 
 class PrestamoDAO:
-    def registrar_prestamo(self, libro_id, usuario_id):
-        with sqlite3.connect(RUTA_BD) as conn:
-            cursor = conn.cursor()
+
+    def registrar_prestamo(self,libro_id,usuario_id,fecha_prestamo,fecha_devolucion):
+        with sqlite3.connect(RUTA_BD) as conexion:
+            cursor = conexion.cursor()
 
             cursor.execute(
                 """
-                INSERT INTO prestamos (libro_id, usuario_id, estado)
-                VALUES (?, ?, 'prestado')
+                INSERT INTO prestamos (libro_id, usuario_id, fecha_prestamo, fecha_devolucion) VALUES (?, ?, ?, ?)
                 """,
-                (libro_id, usuario_id)
+                (libro_id,usuario_id,fecha_prestamo,fecha_devolucion)
             )
 
-            conn.commit()
+            conexion.commit()
             return cursor.lastrowid
 
-    def get_prestamo_activo(self, libro_id, usuario_id):
-        with sqlite3.connect(RUTA_BD) as conn:
-            fila = conn.execute(
-                """
-                SELECT id_prestamo, libro_id, usuario_id, fecha_prestamo, fecha_devolucion, estado
-                FROM prestamos
-                WHERE libro_id = ?
-                  AND usuario_id = ?
-                  AND estado = 'prestado'
+    def tiene_prestamo_activo(self, libro_id):
+        with sqlite3.connect(RUTA_BD) as conexion:
+            fila = conexion.execute(
+                """SELECT 1 FROM prestamos WHERE libro_id = ? LIMIT 1
                 """,
-                (libro_id, usuario_id)
+                (libro_id,)
+            ).fetchone()
+
+        return fila is not None
+
+    def get_prestamo_activo(self, libro_id):
+        with sqlite3.connect(RUTA_BD) as conexion:
+            fila = conexion.execute(
+                """
+                SELECT id_prestamo,libro_id,usuario_id,fecha_prestamo,fecha_devolucion FROM prestamos WHERE libro_id = ?
+                """,
+                (libro_id,)
             ).fetchone()
 
         if fila is None:
             return None
 
-        return Prestamo(fila[0],fila[1],fila[2],fila[3],fila[4],fila[5])
+        return Prestamo(fila[0],fila[1],fila[2],fila[3],fila[4]
+        )
 
-    def registrar_devolucion(self, id_prestamo):
+    def devolver_prestamo(self, libro_id):
         with sqlite3.connect(RUTA_BD) as conexion:
             conexion.execute(
                 """
-                UPDATE prestamos
-                SET estado = 'devuelto',
-                    fecha_devolucion = DATE('now')
-                WHERE id_prestamo = ?
-                  AND estado = 'prestado'
+                DELETE FROM prestamos WHERE libro_id = ?
                 """,
-                (id_prestamo,)
+                (libro_id,)
             )
 
             conexion.commit()
+
+    def listar_prestamos_usuario(self, usuario_id):
+        with sqlite3.connect(RUTA_BD) as conexion:
+            filas = conexion.execute(
+                """
+                SELECT id_prestamo,libro_id,usuario_id,fecha_prestamo,fecha_devolucion FROM prestamos WHERE usuario_id = ? ORDER BY fecha_prestamo
+                """,
+                (usuario_id,)
+            ).fetchall()
+
+        prestamos = []
+
+        for fila in filas:
+            prestamos.append(
+                Prestamo(fila[0],fila[1],fila[2],fila[3],fila[4])
+            )
+
+        return prestamos
