@@ -8,6 +8,10 @@ bd = libros
 modo = "normal"
 ultimo_error = ""
 
+# =========================
+# FUNCIONES BIBLIOTECA
+# =========================
+
 """muestra mensaje resutlado de realizar acciones del programa"""
 def mostrar_mensaje(mensaje, titulo="", tipo=0):
     if tipo == 1:

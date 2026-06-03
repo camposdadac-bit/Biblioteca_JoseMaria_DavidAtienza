@@ -1,13 +1,12 @@
 import sqlite3
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+URL = os.path.join(BASE_DIR, "bd", "biblioteca.db")
+def getConexion():
 
-def getconexion():
-    conn=sqlite3.connect("biblioteca.db")
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS biblioteca (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT
-    )
-    """)
-    conn.commit()
-    conn.close()
+    """Establece y devuelve la conexiÃ³n con la base de datos """
+    try:
+        return sqlite3.connect(URL)
+    except sqlite3.OperationalError:
+        print("Error al conectarse")
+        raise

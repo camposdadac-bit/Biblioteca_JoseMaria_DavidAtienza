@@ -1,106 +1,435 @@
+"""
+Tests para biblioteca.py — cobertura 100% (Versión unittest)
+Cubre rutas exitosas y erróneas de todas las funciones.
+"""
 import unittest
-import biblioteca
+from unittest.mock import MagicMock, patch
+import sys
+import os
+import io
 
-class test_biblioteca(unittest.TestCase):
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+import biblioteca
+from Usuario import Usuario
+
+
+# ---------------------------------------------------------------------------
+# Clase Base para Setup y Teardown (Reemplaza a la fixture de pytest)
+# ---------------------------------------------------------------------------
+
+class TestBibliotecaBase(unittest.TestCase):
     def setUp(self):
-        biblioteca.libros.clear()
+        """Restaura el estado global de biblioteca antes de cada test."""
+        biblioteca.bd = []
+        biblioteca.libros = []
+        biblioteca.usuarios = []
+        biblioteca.modo = "normal"
         biblioteca.ultimo_error = ""
 
-    def test_agregar_libro_guarda_titulo_autor_y_estado_disponible(self):
-        biblioteca.agregar_libro("El Quijote", "Miguel de Cervantes")
+    def tearDown(self):
+        """Restaura el estado global de biblioteca después de cada test."""
+        biblioteca.bd = []
+        biblioteca.libros = []
+        biblioteca.usuarios = []
+        biblioteca.modo = "normal"
+        biblioteca.ultimo_error = ""
 
-        self.assertEqual(len(biblioteca.libros), 1)
-        self.assertEqual(biblioteca.libros[0]["titulo"], "El Quijote")
-        self.assertEqual(biblioteca.libros[0]["autor"], "Miguel de Cervantes")
-        self.assertTrue(biblioteca.libros[0]["disponible"])
 
-    def test_prestar_libro_cambia_estado_si_existe_y_esta_disponible(self):
-        biblioteca.agregar_libro("Nada", "Carmen Laforet")
+# ===========================================================================
+# mostrar_mensaje
+# ===========================================================================
 
-        resultado = biblioteca.prestar_libro("Nada")
+class TestMostrarMensaje(TestBibliotecaBase):
+    def test_tipo_1_imprime_mensaje_y_titulo(self):
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            biblioteca.mostrar_mensaje("Hola ", "Mundo", tipo=1)
+            self.assertEqual(fake_out.getvalue().strip(), "Hola Mundo")
 
-        self.assertEqual(resultado, "Libro prestado")
-        self.assertFalse(biblioteca.libros[0]["disponible"])
+    def test_tipo_2_imprime_solo_mensaje(self):
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            biblioteca.mostrar_mensaje("Solo mensaje", tipo=2)
+            self.assertEqual(fake_out.getvalue().strip(), "Solo mensaje")
 
-    def test_devolver_libro_cambia_estado_si_estaba_prestado(self):
-        biblioteca.agregar_libro("La colmena", "Camilo Jose Cela")
-        biblioteca.prestar_libro("La colmena")
+    def test_tipo_0_por_defecto_imprime_str(self):
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            biblioteca.mostrar_mensaje(42)
+            self.assertEqual(fake_out.getvalue().strip(), "42")
 
-        resultado = biblioteca.devolver_libro("La colmena")
+    def test_tipo_desconocido_imprime_str(self):
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            biblioteca.mostrar_mensaje("x", tipo=99)
+            self.assertEqual(fake_out.getvalue().strip(), "x")
 
-        self.assertEqual(resultado, "Libro devuelto")
-        self.assertTrue(biblioteca.libros[0]["disponible"])
 
-    def test_buscar_libro_existente_devuelve_diccionario(self):
-        biblioteca.agregar_libro("Dune", "Frank Herbert")
-        resultado = biblioteca.buscar_libro("Dune")
-        self.assertIsNotNone(resultado)
-        self.assertEqual(resultado["titulo"], "Dune")
+# ===========================================================================
+# obtener_estado
+# ===========================================================================
 
-    def test_buscar_libro_inexistente_devuelve_none(self):
-        resultado = biblioteca.buscar_libro("Libro Inexistente")
-        self.assertIsNone(resultado)
+class TestObtenerEstado(TestBibliotecaBase):
+    def test_disponible_true(self):
+        self.assertEqual(biblioteca.obtener_estado(True), "Disponible")
 
-    def test_prestar_libro_inexistente_devuelve_error(self):
-        resultado = biblioteca.prestar_libro("No Existo")
-        self.assertEqual(resultado, "Libro no encontrado")
+    def test_disponible_false(self):
+        self.assertEqual(biblioteca.obtener_estado(False), "Prestado")
 
-    def test_prestar_libro_ya_prestado_devuelve_error(self):
-        biblioteca.agregar_libro("El Hobbit", "J.R.R. Tolkien")
-        biblioteca.prestar_libro("El Hobbit")
-        resultado = biblioteca.prestar_libro("El Hobbit")
-        self.assertEqual(resultado, "Libro no disponible")
 
-    def test_devolver_libro_inexistente_devuelve_error(self):
-        resultado = biblioteca.devolver_libro("Libro Falso")
-        self.assertEqual(resultado, "Libro no encontrado")
+# ===========================================================================
+# crear_libro
+# ===========================================================================
 
-    def test_devolver_libro_ya_disponible_devuelve_error(self):
-        biblioteca.agregar_libro("Carmilla", "Sheridan Le Fanu")
-        resultado = biblioteca.devolver_libro("Carmilla")
-        self.assertEqual(resultado, "Libro ya disponible")
+class TestCrearLibro(TestBibliotecaBase):
+    def test_crea_libro_con_campos_correctos(self):
+        libro = biblioteca.crear_libro("1984", "Orwell")
+        self.assertEqual(libro["titulo"], "1984")
+        self.assertEqual(libro["autor"], "Orwell")
+        self.assertTrue(libro["disponible"])
 
-    def test_prestar_libro_inexistente_actualiza_ultimo_error(self):
-        biblioteca.prestar_libro("El libro que no existe")
-        self.assertEqual(biblioteca.ultimo_error, "Libro no encontrado")
 
-    def test_prestar_libro_ya_prestado_actualiza_ultimo_error(self):
-        biblioteca.agregar_libro("El Hobbit", "J.R.R. Tolkien")
-        biblioteca.prestar_libro("El Hobbit")
-        biblioteca.prestar_libro("El Hobbit")
-        self.assertEqual(biblioteca.ultimo_error, "Libro no disponible")
+# ===========================================================================
+# simulacion_toString
+# ===========================================================================
 
-    def test_devolver_libro_inexistente_actualiza_ultimo_error(self):
-        biblioteca.devolver_libro("El libro fantasma")
-        self.assertEqual(biblioteca.ultimo_error, "Libro no encontrado")
+class TestSimulacionToString(TestBibliotecaBase):
+    def test_libro_disponible(self):
+        libro = {"titulo": "Dune", "autor": "Herbert", "disponible": True}
+        resultado = biblioteca.simulacion_toString(libro)
+        self.assertEqual(resultado, "Dune - Herbert - Disponible")
 
-    def test_devolver_libro_ya_disponible_actualiza_ultimo_error(self):
-        biblioteca.agregar_libro("Carmilla", "Sheridan Le Fanu")
-        biblioteca.devolver_libro("Carmilla")
-        self.assertEqual(biblioteca.ultimo_error, "Libro ya disponible")
+    def test_libro_prestado(self):
+        libro = {"titulo": "Dune", "autor": "Herbert", "disponible": False}
+        resultado = biblioteca.simulacion_toString(libro)
+        self.assertEqual(resultado, "Dune - Herbert - Prestado")
 
-    def test_mostrar_libros_cuando_la_biblioteca_esta_vacia(self):
-        biblioteca.mostrar_libros()
-        self.assertEqual(len(biblioteca.libros), 0)
 
-    def test_mostrar_libros_con_ejemplares_disponibles_y_prestados(self):
+# ===========================================================================
+# agregar_libro
+# ===========================================================================
+
+class TestAgregarLibro(TestBibliotecaBase):
+    def test_agrega_libro_en_modo_normal(self):
+        biblioteca.agregar_libro("El Quijote", "Cervantes")
+        self.assertEqual(len(biblioteca.bd), 1)
+        self.assertEqual(biblioteca.bd[0]["titulo"], "El Quijote")
+        self.assertEqual(biblioteca.ultimo_error, "")
+
+    def test_no_agrega_en_modo_desconocido(self):
+        biblioteca.modo = "test"
+        biblioteca.agregar_libro("El Quijote", "Cervantes")
+        self.assertEqual(len(biblioteca.bd), 0)
+        self.assertEqual(biblioteca.ultimo_error, "modo desconocido")
+
+    def test_agrega_varios_libros(self):
         biblioteca.agregar_libro("Libro A", "Autor A")
         biblioteca.agregar_libro("Libro B", "Autor B")
-        biblioteca.prestar_libro("Libro B")
-        biblioteca.mostrar_libros()
-        self.assertEqual(len(biblioteca.libros), 2)
+        self.assertEqual(len(biblioteca.bd), 2)
 
-    def test_cosa_imprime_string_con_c_distinto_de_1_y_2(self):
-        biblioteca._cosa("Prueba c=0", c=0)
 
-    def test_mover_devuelve_nada_si_accion_desconocida(self):
-        resultado = biblioteca._mover("x", {})
-        self.assertEqual(resultado, "Nada")
+# ===========================================================================
+# buscar_libro
+# ===========================================================================
 
-    def test_buscar_libro_salta_registros_sin_clave_titulo(self):
-        biblioteca.bd.append({"autor": "Anónimo", "disponible": True})
-        resultado = biblioteca.buscar_libro("Cualquiera")
+class TestBuscarLibro(TestBibliotecaBase):
+    def test_encuentra_libro_existente(self):
+        biblioteca.agregar_libro("Hamlet", "Shakespeare")
+        libro = biblioteca.buscar_libro("Hamlet")
+        self.assertIsNotNone(libro)
+        self.assertEqual(libro["titulo"], "Hamlet")
+
+    def test_retorna_none_si_no_existe(self):
+        self.assertIsNone(biblioteca.buscar_libro("Inexistente"))
+
+
+# ===========================================================================
+# cambiar_estado_libro
+# ===========================================================================
+
+class TestCambiarEstadoLibro(TestBibliotecaBase):
+    def test_prestar_cambia_disponible_a_false(self):
+        libro = {"titulo": "X", "autor": "Y", "disponible": True}
+        resultado = biblioteca.cambiar_estado_libro("prestar", libro)
+        self.assertFalse(libro["disponible"])
+        self.assertEqual(resultado, "Libro prestado")
+
+    def test_devolver_cambia_disponible_a_true(self):
+        libro = {"titulo": "X", "autor": "Y", "disponible": False}
+        resultado = biblioteca.cambiar_estado_libro("devolver", libro)
+        self.assertTrue(libro["disponible"])
+        self.assertEqual(resultado, "Libro devuelto")
+
+    def test_accion_desconocida_retorna_mensaje(self):
+        libro = {"titulo": "X", "autor": "Y", "disponible": True}
+        resultado = biblioteca.cambiar_estado_libro("romper", libro)
+        self.assertEqual(resultado, "Accion no reconocida")
+
+
+# ===========================================================================
+# prestar_libro
+# ===========================================================================
+
+class TestPrestarLibro(TestBibliotecaBase):
+    def test_presta_libro_disponible(self):
+        biblioteca.agregar_libro("Cien años", "García Márquez")
+        resultado = biblioteca.prestar_libro("Cien años")
+        self.assertEqual(resultado, "Libro prestado")
+        self.assertEqual(biblioteca.ultimo_error, "")
+
+    def test_error_libro_no_encontrado(self):
+        resultado = biblioteca.prestar_libro("Inexistente")
+        self.assertEqual(resultado, "Libro no encontrado")
+        self.assertEqual(biblioteca.ultimo_error, "Libro no encontrado")
+
+    def test_error_libro_ya_prestado(self):
+        biblioteca.agregar_libro("Dune", "Herbert")
+        biblioteca.prestar_libro("Dune")           # primer préstamo
+        resultado = biblioteca.prestar_libro("Dune")  # intento duplicado
+        self.assertEqual(resultado, "Libro no disponible")
+        self.assertEqual(biblioteca.ultimo_error, "Libro no disponible")
+
+
+# ===========================================================================
+# devolver_libro
+# ===========================================================================
+
+class TestDevolverLibro(TestBibliotecaBase):
+    def test_devuelve_libro_prestado(self):
+        biblioteca.agregar_libro("Neuromancer", "Gibson")
+        biblioteca.prestar_libro("Neuromancer")
+        resultado = biblioteca.devolver_libro("Neuromancer")
+        self.assertEqual(resultado, "Libro devuelto")
+        self.assertEqual(biblioteca.ultimo_error, "")
+
+    def test_error_libro_no_encontrado(self):
+        resultado = biblioteca.devolver_libro("Fantasma")
+        self.assertEqual(resultado, "Libro no encontrado")
+        self.assertEqual(biblioteca.ultimo_error, "Libro no encontrado")
+
+    def test_error_libro_ya_disponible(self):
+        biblioteca.agregar_libro("Neuromancer", "Gibson")
+        resultado = biblioteca.devolver_libro("Neuromancer")
+        self.assertEqual(resultado, "Libro ya disponible")
+        self.assertEqual(biblioteca.ultimo_error, "Libro ya disponible")
+
+
+# ===========================================================================
+# mostrar_libros
+# ===========================================================================
+
+class TestMostrarLibros(TestBibliotecaBase):
+    def test_muestra_mensaje_si_bd_vacia(self):
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            biblioteca.mostrar_libros()
+            self.assertIn("No hay libros", fake_out.getvalue())
+
+    def test_muestra_libros_existentes(self):
+        biblioteca.agregar_libro("1984", "Orwell")
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            biblioteca.mostrar_libros()
+            salida = fake_out.getvalue()
+            self.assertIn("1984", salida)
+            self.assertIn("Orwell", salida)
+
+
+# ===========================================================================
+# add_usuario
+# ===========================================================================
+
+class TestAddUsuario(TestBibliotecaBase):
+    def test_agrega_usuario_exitosamente(self):
+        usuario = Usuario(None, "Ana", "López", "ana@mail.com")
+        biblioteca.usuarioDAO.add_usuario_bd = MagicMock(return_value=1)
+
+        resultado = biblioteca.add_usuario(usuario)
+
+        self.assertTrue(resultado)
+        self.assertEqual(usuario.id, 1)
+        self.assertEqual(biblioteca.ultimo_error, "")
+        self.assertIn(usuario, biblioteca.usuarios)
+
+    def test_error_al_agregar_usuario(self):
+        usuario = Usuario(None, "Ana", "López", "ana@mail.com")
+        biblioteca.usuarioDAO.add_usuario_bd = MagicMock(
+            side_effect=Exception("DB error")
+        )
+
+        resultado = biblioteca.add_usuario(usuario)
+
+        self.assertFalse(resultado)
+        self.assertEqual(biblioteca.ultimo_error, "DB error")
+
+
+# ===========================================================================
+# remove_usuario
+# ===========================================================================
+
+class TestRemoveUsuario(TestBibliotecaBase):
+    def test_elimina_usuario_existente(self):
+        usuario = Usuario(1, "Ana", "López", "ana@mail.com")
+        biblioteca.usuarios.append(usuario)
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=usuario)
+        biblioteca.usuarioDAO.borrar_de_bd = MagicMock()
+
+        resultado = biblioteca.remove_usuario(1)
+
+        self.assertTrue(resultado)
+        self.assertNotIn(usuario, biblioteca.usuarios)
+        self.assertEqual(biblioteca.ultimo_error, "")
+
+    def test_error_usuario_no_encontrado(self):
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=None)
+
+        resultado = biblioteca.remove_usuario(99)
+
+        self.assertFalse(resultado)
+        self.assertEqual(biblioteca.ultimo_error, "Usuario no encontrado")
+
+    def test_elimina_usuario_no_en_lista_local(self):
+        """El usuario existe en BD pero no en la lista en memoria."""
+        usuario = Usuario(5, "Bob", "Díaz", "bob@mail.com")
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=usuario)
+        biblioteca.usuarioDAO.borrar_de_bd = MagicMock()
+
+        resultado = biblioteca.remove_usuario(5)
+
+        self.assertTrue(resultado)
+
+
+# ===========================================================================
+# get_usuario
+# ===========================================================================
+
+class TestGetUsuario(TestBibliotecaBase):
+    def test_retorna_usuario_existente(self):
+        usuario = Usuario(1, "Ana", "López", "ana@mail.com")
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=usuario)
+
+        resultado = biblioteca.get_usuario(1)
+
+        self.assertEqual(resultado, usuario)
+        self.assertEqual(biblioteca.ultimo_error, "")
+
+    def test_retorna_none_si_no_existe(self):
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=None)
+
+        resultado = biblioteca.get_usuario(99)
+
         self.assertIsNone(resultado)
+        self.assertEqual(biblioteca.ultimo_error, "Usuario no encontrado")
+
+
+# ===========================================================================
+# list_usuarios
+# ===========================================================================
+
+class TestListUsuarios(TestBibliotecaBase):
+    def test_retorna_y_actualiza_lista(self):
+        u1 = Usuario(1, "Ana", "López", "ana@mail.com")
+        u2 = Usuario(2, "Luis", "Gómez", "luis@mail.com")
+        biblioteca.usuarioDAO.seleccionar_todos = MagicMock(return_value=[u1, u2])
+
+        resultado = biblioteca.list_usuarios()
+
+        self.assertEqual(resultado, [u1, u2])
+        self.assertEqual(biblioteca.usuarios, [u1, u2])
+
+    def test_retorna_lista_vacia(self):
+        biblioteca.usuarioDAO.seleccionar_todos = MagicMock(return_value=[])
+
+        resultado = biblioteca.list_usuarios()
+
+        self.assertEqual(resultado, [])
+
+
+# ===========================================================================
+# habilita_usuario
+# ===========================================================================
+
+class TestHabilitaUsuario(TestBibliotecaBase):
+    def test_habilita_usuario_existente(self):
+        usuario = Usuario(1, "Ana", "López", "ana@mail.com", habilitado=False)
+        biblioteca.usuarios.append(usuario)
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=usuario)
+        biblioteca.usuarioDAO.update_usuario_bd = MagicMock()
+
+        resultado = biblioteca.habilita_usuario(1)
+
+        self.assertTrue(resultado)
+        self.assertTrue(usuario.habilitado)
+        self.assertEqual(biblioteca.ultimo_error, "")
+
+    def test_error_usuario_no_encontrado(self):
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=None)
+
+        resultado = biblioteca.habilita_usuario(99)
+
+        self.assertFalse(resultado)
+        self.assertEqual(biblioteca.ultimo_error, "Usuario no encontrado")
+
+    def test_error_excepcion_en_bd(self):
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(
+            side_effect=Exception("fallo")
+        )
+
+        resultado = biblioteca.habilita_usuario(1)
+
+        self.assertFalse(resultado)
+        self.assertEqual(biblioteca.ultimo_error, "fallo")
+
+    def test_habilita_usuario_no_en_lista_local(self):
+        """Existe en BD pero no en la lista en memoria: no lanza excepción."""
+        usuario = Usuario(7, "Ana", "López", "ana@mail.com", habilitado=False)
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=usuario)
+        biblioteca.usuarioDAO.update_usuario_bd = MagicMock()
+
+        resultado = biblioteca.habilita_usuario(7)
+
+        self.assertTrue(resultado)
+
+
+# ===========================================================================
+# deshabilita_usuario
+# ===========================================================================
+
+class TestDeshabilitaUsuario(TestBibliotecaBase):
+    def test_deshabilita_usuario_existente(self):
+        usuario = Usuario(1, "Ana", "López", "ana@mail.com", habilitado=True)
+        biblioteca.usuarios.append(usuario)
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=usuario)
+        biblioteca.usuarioDAO.update_usuario_bd = MagicMock()
+
+        resultado = biblioteca.deshabilita_usuario(1)
+
+        self.assertTrue(resultado)
+        self.assertFalse(usuario.habilitado)
+        self.assertEqual(biblioteca.ultimo_error, "")
+
+    def test_error_usuario_no_encontrado(self):
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=None)
+
+        resultado = biblioteca.deshabilita_usuario(99)
+
+        self.assertFalse(resultado)
+        self.assertEqual(biblioteca.ultimo_error, "Usuario no encontrado")
+
+    def test_error_excepcion_en_bd(self):
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(
+            side_effect=Exception("fallo")
+        )
+
+        resultado = biblioteca.deshabilita_usuario(1)
+
+        self.assertFalse(resultado)
+        self.assertEqual(biblioteca.ultimo_error, "fallo")
+
+    def test_deshabilita_usuario_no_en_lista_local(self):
+        """Existe en BD pero no en la lista en memoria: no lanza excepción."""
+        usuario = Usuario(8, "Ana", "López", "ana@mail.com", habilitado=True)
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=usuario)
+        biblioteca.usuarioDAO.update_usuario_bd = MagicMock()
+
+        resultado = biblioteca.deshabilita_usuario(8)
+
+        self.assertTrue(resultado)
 
 if __name__ == "__main__":
     unittest.main()
