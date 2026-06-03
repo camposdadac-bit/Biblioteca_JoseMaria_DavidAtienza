@@ -70,7 +70,7 @@ class TestUsuarioDAO(unittest.TestCase):
         con.close()
 
         # Iniciamos el parche sobre RUTA_BD
-        self.patcher = patch("UsuarioDAO.RUTA_BD", self.db_path)
+        self.patcher = patch("DAO.UsuarioDAO.RUTA_BD", self.db_path)
         self.patcher.start()
 
         self.dao = UsuarioDAO()
