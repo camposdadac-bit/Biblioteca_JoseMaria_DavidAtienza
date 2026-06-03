@@ -1,5 +1,5 @@
 """
-Tests para biblioteca.py — cobertura 100% (Versión unittest)
+Tests para biblioteca.py — coº1bertura 100% (Versión unittest)
 Cubre rutas exitosas y erróneas de todas las funciones.
 """
 import unittest
