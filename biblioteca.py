@@ -1,4 +1,5 @@
 from DTO.Libro import Libro
+from crud.crud_libro import LibroDAO
 
 libros = []
 bd = libros
@@ -118,3 +119,43 @@ def mostrar_libros():
 
     for libro in bd:
         print(simulacion_toString(libro))
+
+def add_libro(libro):
+    """Añade un objeto Libro a la base de datos usando el DAO."""
+    global ultimo_error
+    try:
+        LibroDAO.crear(libro)
+        bd.append(libro)  # Sincronizamos con tu lista vieja por si acaso
+        ultimo_error = ""
+        return True
+    except Exception as e:
+        ultimo_error = str(e)
+        return False
+
+def remove_libro(id_libro):
+    """Elimina un libro de la biblioteca por su ID a través del DAO."""
+    global ultimo_error
+    libro_existente = LibroDAO.obtener_por_id(id_libro)
+    if libro_existente is None:
+        ultimo_error = "Libro no encontrado"
+        return False
+    LibroDAO.eliminar(id_libro)
+    ultimo_error = ""
+    return True
+
+def get_libro(id_libro):
+    """Obtiene un libro específico mediante el DAO."""
+    global ultimo_error
+    libro = LibroDAO.obtener_por_id(id_libro)
+    if libro is None:
+        ultimo_error = "Libro no encontrado"
+        return None
+    ultimo_error = ""
+    return libro
+
+def list_libros():
+    """Devuelve la lista con todos los libros traídos por el DAO."""
+    global bd
+    todos_los_libros = LibroDAO.obtener_todos()
+    bd = todos_los_libros  # Actualizamos tu lista 'bd' global
+    return todos_los_libros
