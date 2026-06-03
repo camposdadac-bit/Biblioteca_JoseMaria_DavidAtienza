@@ -181,3 +181,63 @@ def list_usuarios():
     usuarios = todos_los_usuarios
 
     return todos_los_usuarios
+
+def habilita_usuario(id_usuario):
+    global ultimo_error
+
+    try:
+        usuario = usuarioDAO.get_usuario_id_bd(id_usuario)
+
+        if usuario is None:
+            ultimo_error = "Usuario no encontrado"
+            return False
+
+        usuarioDAO.update_usuario_bd(
+            id_usuario,
+            usuario.nombre,
+            usuario.apellidos,
+            usuario.email,
+            True
+        )
+
+        for u in usuarios:
+            if u.id == id_usuario:
+                u.habilitado = True
+                break
+
+        ultimo_error = ""
+        return True
+
+    except Exception as e:
+        ultimo_error = str(e)
+        return False
+
+def deshabilita_usuario(id_usuario):
+    global ultimo_error
+
+    try:
+        usuario = usuarioDAO.get_usuario_id_bd(id_usuario)
+
+        if usuario is None:
+            ultimo_error = "Usuario no encontrado"
+            return False
+
+        usuarioDAO.update_usuario_bd(
+            id_usuario,
+            usuario.nombre,
+            usuario.apellidos,
+            usuario.email,
+            False
+        )
+
+        for u in usuarios:
+            if u.id == id_usuario:
+                u.habilitado = False
+                break
+
+        ultimo_error = ""
+        return True
+
+    except Exception as e:
+        ultimo_error = str(e)
+        return False
