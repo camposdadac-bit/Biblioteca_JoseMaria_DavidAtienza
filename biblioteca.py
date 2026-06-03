@@ -110,7 +110,7 @@ def devolver_libro(titulo):
         ultimo_error = "Libro no encontrado"
         return "Libro no encontrado"
 
-    if PrestamoDAO().tiene_prestamo_activo(libro.id):
+    if not PrestamoDAO().tiene_prestamo_activo(libro.id):
         mostrar_mensaje("El libro ya estaba disponible", tipo=2)
         ultimo_error = "Libro ya disponible"
         return "Libro ya disponible"
