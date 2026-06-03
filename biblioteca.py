@@ -1,3 +1,6 @@
+import Usuario
+
+usuarios = []
 libros = []
 bd = libros
 modo = "normal"
@@ -114,3 +117,39 @@ def mostrar_libros():
 
     for libro in bd:
         print(simulacion_toString(libro))
+
+# =========================
+# FUNCIONES USUARIO
+# =========================
+
+def add_usuario(usuario):
+    global ultimo_error
+
+    if not isinstance(usuario, Usuario):
+        ultimo_error = "Objeto inválido"
+        return
+
+    usuarios.append(usuario)
+    ultimo_error = ""
+
+def remove_usuario(id):
+    global ultimo_error
+
+    for u in usuarios:
+        if u.id == id:
+            usuarios.remove(u)
+            ultimo_error = ""
+            return "Usuario eliminado"
+
+    ultimo_error = "Usuario no encontrado"
+    return "Usuario no encontrado"
+
+def get_usuario(id):
+    for u in usuarios:
+        if u.id == id:
+            return u
+    return None
+
+def list_usuarios():
+    return usuarios
+
