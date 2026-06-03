@@ -1,5 +1,6 @@
 from DTO.Libro import Libro
 from DAO.DAO_libro import DAO_libro
+from DAO.PrestamoDAO import PrestamoDAO
 
 from DAO.UsuarioDAO import UsuarioDAO
 
@@ -33,6 +34,7 @@ def cambiar_estado_libro(accion, libro):
 
     if accion == "devolver":
         libro.disponible= True
+        DAO_libro.modificar_en_bd(libro.id, libro.titulo, libro.autor, True, libro.isbn)
         mostrar_mensaje("Se devolvio el libro", tipo=2)
         return "Libro devuelto"
 
@@ -99,11 +101,12 @@ def devolver_libro(titulo):
         ultimo_error = "Libro no encontrado"
         return "Libro no encontrado"
 
-    if libro["disponible"]:
+    if PrestamoDAO().tiene_prestamo_activo(libro.id):
         mostrar_mensaje("El libro ya estaba disponible", tipo=2)
         ultimo_error = "Libro ya disponible"
         return "Libro ya disponible"
 
+    PrestamoDAO().devolver_prestamo(libro.id)
     ultimo_error = ""
     return cambiar_estado_libro("devolver", libro)
 
