@@ -7,6 +7,10 @@ modo = "normal"
 ultimo_error = ""
 proximo_id = 1
 
+    #=========================
+    #FUNCIONES BIBLIOTECA
+    #=========================
+
 """muestra mensaje resutlado de realizar acciones del programa"""
 def mostrar_mensaje(mensaje, titulo="", tipo=0):
     if tipo == 1:
@@ -121,6 +125,9 @@ def mostrar_libros():
         print(simulacion_toString(libro))
 
 
+    #=========================
+    #FUNCIONES LIBRO
+    #=========================
 """DAO de libro con los 4 metodos crear, eliminar, listar, update """
 
 def add_libro(libro):
