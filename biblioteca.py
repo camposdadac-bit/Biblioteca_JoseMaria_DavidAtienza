@@ -1,7 +1,10 @@
+from DTO.Libro import Libro
+
 libros = []
 bd = libros
 modo = "normal"
 ultimo_error = ""
+proximo_id = 1
 
 """muestra mensaje resutlado de realizar acciones del programa"""
 def mostrar_mensaje(mensaje, titulo="", tipo=0):
@@ -27,22 +30,23 @@ def cambiar_estado_libro(accion, libro):
     return "Accion no reconocida"
 
 """Crea un libro con los atributos introducidos"""
-def crear_libro(titulo, autor):
-    return {
-        "titulo": titulo,
-        "autor": autor,
-        "disponible": True
-    }
+def crear_libro(titulo, autor, isbn=None):
+    global proximo_id
+
+    nuevo_libro = Libro(proximo_id, titulo, autor, disponible=True, isbn=isbn)
+    proximo_id += 1
+
+    return nuevo_libro
 
 """Agrega el libro creado a la base de datos. Comprobando el modo actual(Ya veremos para que sirve)"""
-def agregar_libro(titulo, autor):
+def agregar_libro(titulo, autor, isbn=None):
     global ultimo_error
 
     if modo != "normal":
         ultimo_error = "modo desconocido"
         return
 
-    nuevo_libro = crear_libro(titulo, autor)
+    nuevo_libro = crear_libro(titulo, autor,isbn)
     bd.append(nuevo_libro)
     ultimo_error = ""
 

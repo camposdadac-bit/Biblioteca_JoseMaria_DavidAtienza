@@ -91,11 +91,11 @@ class TestBiblioteca(unittest.TestCase):
         self.assertEqual(len(biblioteca.libros), 2)
 
     def test_cosa_imprime_string_con_c_distinto_de_1_y_2(self):
-        biblioteca._cosa("Prueba c=0", c=0)
+        biblioteca.mostrar_mensaje("Prueba c=0", tipo=0)
 
     def test_mover_devuelve_nada_si_accion_desconocida(self):
-        resultado = biblioteca._mover("x", {})
-        self.assertEqual(resultado, "Nada")
+        resultado = biblioteca.cambiar_estado_libro("x", {})
+        self.assertEqual(resultado, "Accion no reconocida")
 
     def test_buscar_libro_salta_registros_sin_clave_titulo(self):
         biblioteca.bd.append({"autor": "Anónimo", "disponible": True})
