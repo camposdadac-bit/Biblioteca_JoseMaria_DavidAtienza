@@ -153,3 +153,26 @@ def get_usuario(id):
 def list_usuarios():
     return usuarios
 
+def habilita_usuario(id):
+    global ultimo_error
+
+    for u in usuarios:
+        if u.id == id:
+            u.habilitado = True
+            ultimo_error = ""
+            return "Usuario habilitado"
+
+    ultimo_error = "Usuario no encontrado"
+    return "Usuario no encontrado"
+
+def deshabilita_usuario(id):
+    global ultimo_error
+
+    for u in usuarios:
+        if u.id == id:
+            u.habilitado = False
+            ultimo_error = ""
+            return "Usuario deshabilitado"
+
+    ultimo_error = "Usuario no encontrado"
+    return "Usuario no encontrado"
