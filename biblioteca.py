@@ -224,10 +224,7 @@ def list_usuarios():
 
 
 def habilita_usuario(id_usuario):
-    """Pone habilitado=False en la BD y en la lista en memoria.
-    Si no existe devuelve False, si falla por excepción guarda el error
-    devuelve False. Si existe en BD pero no en la lista el bucle no
-    encuentra nada y no rompe"""
+    """Revisa la existencia del usuario a través del id introducido. Para despues habilitarlo modificando su atributo de habilitado"""
     global ultimo_error
 
     try:
