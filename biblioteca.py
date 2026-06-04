@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from xmlrpc.client import DateTime
 
+from DAO.LogDAO import LogDAO
 from DAO.PrestamoDAO import PrestamoDAO
 from DTO.Libro import Libro
 from DAO.DAO_libro import DAO_libro
@@ -8,6 +9,7 @@ from DAO.PrestamoDAO import PrestamoDAO
 
 from DAO.UsuarioDAO import UsuarioDAO
 
+logDAO = LogDAO()
 prestamoDAO = PrestamoDAO()
 usuarioDAO = UsuarioDAO()
 usuarios = []
@@ -31,17 +33,20 @@ def mostrar_mensaje(mensaje, titulo="", tipo=0):
         print(str(mensaje))
 
 """Cambia el estado del libro a prestado o disponible para su prestación segun la accion requerida y el estado actual del libro"""
-def cambiar_estado_libro(accion, libro):
+def cambiar_estado_libro(accion, libro, id_usuario):
+    usuarioaccion = usuarioDAO.get_usuario_id_bd(id_usuario)
     if accion == "prestar":
         libro.disponible = False
         DAO_libro.modificar_en_bd(libro.id,libro.titulo,libro.autor,False,libro.isbn)
         mostrar_mensaje("Se presto el libro", tipo=2)
+        logDAO.insertar_log(id_usuario, usuarioaccion.nombre, "ha pedido prestado el libro", libro.id, libro.titulo)
         return "Libro prestado"
 
     if accion == "devolver":
         libro.disponible= True
         DAO_libro.modificar_en_bd(libro.id, libro.titulo, libro.autor, True, libro.isbn)
         mostrar_mensaje("Se devolvio el libro", tipo=2)
+        logDAO.insertar_log(id_usuario,usuarioaccion.nombre,"ha devuelto el libro",libro.id,libro.titulo)
         return "Libro devuelto"
 
     return "Accion no reconocida"
@@ -80,6 +85,9 @@ def buscar_libro(titulo):
 """Revisa que el titulo introducido pertenece a un libro existente y disponible y en ese caso lo presta. Cambiando su estado a prestado con el metodo encargado de ello (cambiar_estado_libro)"""
 def prestar_libro(titulo,id_usuario):
     global ultimo_error
+    usuarioprestacion = usuarioDAO.get_usuario_id_bd(id_usuario)
+    if usuarioprestacion is None:
+        return None
     libro = buscar_libro(titulo)
     fechaactual = date.today()
     fechadevolucion = fechaactual+timedelta(days=30)
@@ -97,11 +105,14 @@ def prestar_libro(titulo,id_usuario):
 
     prestamoDAO.registrar_prestamo(libro.id,id_usuario,fechaactual,fechadevolucion)
     ultimo_error = ""
-    return cambiar_estado_libro("prestar", libro)
+    return cambiar_estado_libro("prestar", libro, id_usuario)
 
 """Revisa que el titulo introducido pertenece a un libro existente y no disponible disponible. Para que en caso de que así sea, se cambie el estado del libro disponible con el metodo encargado de ello (cambiar_estado_libro)"""
-def devolver_libro(titulo):
+def devolver_libro(titulo,id_usuario):
     global ultimo_error
+    usuarioprestacion = usuarioDAO.get_usuario_id_bd(id_usuario)
+    if usuarioprestacion is None:
+        return None
 
     libro = buscar_libro(titulo)
 
@@ -117,7 +128,7 @@ def devolver_libro(titulo):
 
     PrestamoDAO().devolver_prestamo(libro.id)
     ultimo_error = ""
-    return cambiar_estado_libro("devolver", libro)
+    return cambiar_estado_libro("devolver", libro, id_usuario)
 
 """Metodo encargado de devolver el estado actual de un libro"""
 def obtener_estado(disponible):
@@ -365,3 +376,29 @@ def buscar_por_autor(autor_buscar):
             resultados.append(l)
 
     return resultados
+
+def get_logs_usuario(id_usuario):
+    global ultimo_error
+
+    try:
+        logs = logDAO.obtener_logs_por_usuario(id_usuario)
+
+        ultimo_error = ""
+        return logs
+
+    except Exception as e:
+        ultimo_error = str(e)
+        return []
+
+def get_logs_libro(id_libro):
+    global ultimo_error
+
+    try:
+        logs = logDAO.obtener_logs_por_libro(id_libro)
+
+        ultimo_error = ""
+        return logs
+
+    except Exception as e:
+        ultimo_error = str(e)
+        return []
