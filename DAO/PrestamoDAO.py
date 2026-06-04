@@ -12,9 +12,7 @@ class PrestamoDAO:
             cursor = conexion.cursor()
 
             cursor.execute(
-                """
-                INSERT INTO prestamos (libro_id, usuario_id, fecha_prestamo, fecha_devolucion) VALUES (?, ?, ?, ?)
-                """,
+                """INSERT INTO prestamos (libro_id, usuario_id, fecha_prestamo, fecha_devolucion) VALUES (?, ?, ?, ?)""",
                 (libro_id,usuario_id,fecha_prestamo,fecha_devolucion)
             )
 
@@ -24,8 +22,7 @@ class PrestamoDAO:
     def tiene_prestamo_activo(self, libro_id):
         with sqlite3.connect(RUTA_BD) as conexion:
             fila = conexion.execute(
-                """SELECT 1 FROM prestamos WHERE libro_id = ? LIMIT 1
-                """,
+                """SELECT 1 FROM prestamos WHERE libro_id = ? LIMIT 1""",
                 (libro_id,)
             ).fetchone()
 
@@ -34,9 +31,7 @@ class PrestamoDAO:
     def devolver_prestamo(self, libro_id):
         with sqlite3.connect(RUTA_BD) as conexion:
             conexion.execute(
-                """
-                DELETE FROM prestamos WHERE libro_id = ?
-                """,
+                """DELETE FROM prestamos WHERE libro_id = ?""",
                 (libro_id,)
             )
 
@@ -45,9 +40,7 @@ class PrestamoDAO:
     def listar_prestamos_usuario(self, usuario_id):
         with sqlite3.connect(RUTA_BD) as conexion:
             filas = conexion.execute(
-                """
-                SELECT id_prestamo,libro_id,usuario_id,fecha_prestamo,fecha_devolucion FROM prestamos WHERE usuario_id = ? ORDER BY fecha_prestamo
-                """,
+                """SELECT id_prestamo,libro_id,usuario_id,fecha_prestamo,fecha_devolucion FROM prestamos WHERE usuario_id = ? ORDER BY fecha_prestamo""",
                 (usuario_id,)
             ).fetchall()
 
