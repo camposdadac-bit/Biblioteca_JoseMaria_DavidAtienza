@@ -139,9 +139,9 @@ def obtener_estado(disponible):
 def simulacion_toString(libro):
     """Una simulacion de lo que sería un ToString de un objeto"""
     return (
-        f"{libro['titulo']} - "
-        f"{libro['autor']} - "
-        f"{obtener_estado(libro['disponible'])}"
+        f"{libro.titulo} - "
+        f"{libro.autor} - "
+        f"{obtener_estado(libro.disponible)}"
     )
 
 def mostrar_libros():
