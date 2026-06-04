@@ -1,7 +1,7 @@
 from biblioteca import *
 from DTO.Usuario import Usuario
 from DTO.Libro import Libro
-"""Hola reset hard"""
+"""Hola reset hardx2"""
 
 def menu_principal():
     while True:
