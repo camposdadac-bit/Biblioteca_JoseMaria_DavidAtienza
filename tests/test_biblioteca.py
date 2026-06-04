@@ -61,22 +61,31 @@ class TestCambiarEstadoLibro(unittest.TestCase):
 
     def setUp(self):
         self.libro = Libro(1, "Titulo", "Autor", disponible=True)
+        self.usuario_mock = MagicMock()
+        self.usuario_mock.nombre = "Ana"
 
     def test_prestar_libro_cambia_disponible_a_false(self):
-        with patch("builtins.print"):
-            resultado = biblioteca.cambiar_estado_libro("prestar", self.libro)
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=self.usuario_mock), \
+             patch("biblioteca.DAO_libro.modificar_en_bd"), \
+             patch("biblioteca.logDAO.insertar_log"), \
+             patch("builtins.print"):
+            resultado = biblioteca.cambiar_estado_libro("prestar", self.libro, 1)
         self.assertFalse(self.libro.disponible)
         self.assertEqual(resultado, "Libro prestado")
 
     def test_devolver_libro_cambia_disponible_a_true(self):
         self.libro.disponible = False
-        with patch("builtins.print"):
-            resultado = biblioteca.cambiar_estado_libro("devolver", self.libro)
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=self.usuario_mock), \
+             patch("biblioteca.DAO_libro.modificar_en_bd"), \
+             patch("biblioteca.logDAO.insertar_log"), \
+             patch("builtins.print"):
+            resultado = biblioteca.cambiar_estado_libro("devolver", self.libro, 1)
         self.assertTrue(self.libro.disponible)
         self.assertEqual(resultado, "Libro devuelto")
 
     def test_accion_desconocida_devuelve_mensaje_error(self):
-        resultado = biblioteca.cambiar_estado_libro("volar", self.libro)
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=self.usuario_mock):
+            resultado = biblioteca.cambiar_estado_libro("volar", self.libro, 1)
         self.assertEqual(resultado, "Accion no reconocida")
 
 
@@ -144,29 +153,41 @@ class TestBuscarLibro(unittest.TestCase):
 
 
 class TestPrestarLibro(unittest.TestCase):
-    """Cubre prestar_libro: éxito, no encontrado, ya prestado."""
+    """Cubre prestar_libro: éxito, usuario no encontrado, libro no encontrado, ya prestado."""
 
     def setUp(self):
         _reset_biblioteca()
         with patch("builtins.print"):
             biblioteca.agregar_libro("1984", "Orwell")
+        self.usuario_mock = MagicMock()
+        self.usuario_mock.nombre = "Ana"
 
     def test_prestar_libro_disponible_lo_marca_prestado(self):
-        with patch("biblioteca.prestamoDAO.tiene_prestamo_activo", return_value=False), \
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=self.usuario_mock), \
+             patch("biblioteca.prestamoDAO.tiene_prestamo_activo", return_value=False), \
              patch("biblioteca.prestamoDAO.registrar_prestamo"), \
+             patch("biblioteca.DAO_libro.modificar_en_bd"), \
+             patch("biblioteca.logDAO.insertar_log"), \
              patch("builtins.print"):
             resultado = biblioteca.prestar_libro("1984", 1)
         self.assertEqual(resultado, "Libro prestado")
         self.assertEqual(biblioteca.ultimo_error, "")
 
+    def test_prestar_libro_usuario_no_encontrado_devuelve_none(self):
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=None):
+            resultado = biblioteca.prestar_libro("1984", 99)
+        self.assertIsNone(resultado)
+
     def test_prestar_libro_no_encontrado_devuelve_error(self):
-        with patch("builtins.print"):
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=self.usuario_mock), \
+             patch("builtins.print"):
             resultado = biblioteca.prestar_libro("Inexistente", 1)
         self.assertEqual(resultado, "Libro no encontrado")
         self.assertEqual(biblioteca.ultimo_error, "Libro no encontrado")
 
     def test_prestar_libro_ya_prestado_devuelve_no_disponible(self):
-        with patch("biblioteca.prestamoDAO.tiene_prestamo_activo", return_value=True), \
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=self.usuario_mock), \
+             patch("biblioteca.prestamoDAO.tiene_prestamo_activo", return_value=True), \
              patch("builtins.print"):
             resultado = biblioteca.prestar_libro("1984", 1)
         self.assertEqual(resultado, "Libro no disponible")
@@ -174,35 +195,47 @@ class TestPrestarLibro(unittest.TestCase):
 
 
 class TestDevolverLibro(unittest.TestCase):
-    """Cubre devolver_libro: éxito, no encontrado, ya disponible (sin préstamo activo)."""
+    """Cubre devolver_libro: éxito, usuario no encontrado, libro no encontrado, ya disponible."""
 
     def setUp(self):
         _reset_biblioteca()
         with patch("builtins.print"):
             biblioteca.agregar_libro("Hamlet", "Shakespeare")
+        self.usuario_mock = MagicMock()
+        self.usuario_mock.nombre = "Ana"
 
     def test_devolver_libro_prestado_lo_marca_disponible(self):
-        with patch("biblioteca.PrestamoDAO") as MockDAO, \
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=self.usuario_mock), \
+             patch("biblioteca.PrestamoDAO") as MockDAO, \
+             patch("biblioteca.DAO_libro.modificar_en_bd"), \
+             patch("biblioteca.logDAO.insertar_log"), \
              patch("builtins.print"):
             instancia = MockDAO.return_value
             instancia.tiene_prestamo_activo.return_value = True
-            resultado = biblioteca.devolver_libro("Hamlet")
+            resultado = biblioteca.devolver_libro("Hamlet", 1)
         instancia.devolver_prestamo.assert_called_once_with(biblioteca.bd[0].id)
         self.assertEqual(resultado, "Libro devuelto")
         self.assertEqual(biblioteca.ultimo_error, "")
 
+    def test_devolver_libro_usuario_no_encontrado_devuelve_none(self):
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=None):
+            resultado = biblioteca.devolver_libro("Hamlet", 99)
+        self.assertIsNone(resultado)
+
     def test_devolver_libro_no_encontrado_devuelve_error(self):
-        with patch("builtins.print"):
-            resultado = biblioteca.devolver_libro("Inexistente")
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=self.usuario_mock), \
+             patch("builtins.print"):
+            resultado = biblioteca.devolver_libro("Inexistente", 1)
         self.assertEqual(resultado, "Libro no encontrado")
         self.assertEqual(biblioteca.ultimo_error, "Libro no encontrado")
 
     def test_devolver_libro_sin_prestamo_activo_devuelve_ya_disponible(self):
-        with patch("biblioteca.PrestamoDAO") as MockDAO, \
+        with patch("biblioteca.usuarioDAO.get_usuario_id_bd", return_value=self.usuario_mock), \
+             patch("biblioteca.PrestamoDAO") as MockDAO, \
              patch("builtins.print"):
             instancia = MockDAO.return_value
             instancia.tiene_prestamo_activo.return_value = False
-            resultado = biblioteca.devolver_libro("Hamlet")
+            resultado = biblioteca.devolver_libro("Hamlet", 1)
         instancia.devolver_prestamo.assert_not_called()
         self.assertEqual(resultado, "Libro ya disponible")
         self.assertEqual(biblioteca.ultimo_error, "Libro ya disponible")
@@ -424,6 +457,8 @@ class TestBuscarPorAutor(unittest.TestCase):
 # ===========================================================================
 
 class TestAddUsuario(TestBibliotecaBase):
+    """Añade usuario exitosamente y fallo con excepción."""
+
     def test_agrega_usuario_exitosamente(self):
         usuario = Usuario(None, "Ana", "López", "ana@mail.com")
         biblioteca.usuarioDAO.add_usuario_bd = MagicMock(return_value=1)
@@ -452,6 +487,8 @@ class TestAddUsuario(TestBibliotecaBase):
 # ===========================================================================
 
 class TestRemoveUsuario(TestBibliotecaBase):
+    """Elimina usuario existente, no encontrado y no en lista local."""
+
     def test_elimina_usuario_existente(self):
         usuario = Usuario(1, "Ana", "López", "ana@mail.com")
         biblioteca.usuarios.append(usuario)
@@ -488,6 +525,8 @@ class TestRemoveUsuario(TestBibliotecaBase):
 # ===========================================================================
 
 class TestGetUsuario(TestBibliotecaBase):
+    """Obtiene usuario existente y no encontrado."""
+
     def test_retorna_usuario_existente(self):
         usuario = Usuario(1, "Ana", "López", "ana@mail.com")
         biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(return_value=usuario)
@@ -511,6 +550,8 @@ class TestGetUsuario(TestBibliotecaBase):
 # ===========================================================================
 
 class TestListUsuarios(TestBibliotecaBase):
+    """Lista usuarios sincronizando con BD y lista vacía."""
+
     def test_retorna_y_actualiza_lista(self):
         u1 = Usuario(1, "Ana", "López", "ana@mail.com")
         u2 = Usuario(2, "Luis", "Gómez", "luis@mail.com")
@@ -534,6 +575,8 @@ class TestListUsuarios(TestBibliotecaBase):
 # ===========================================================================
 
 class TestHabilitaUsuario(TestBibliotecaBase):
+    """Habilita usuario existente, no encontrado, excepción y no en lista local."""
+
     def test_habilita_usuario_existente(self):
         usuario = Usuario(1, "Ana", "López", "ana@mail.com", habilitado=False)
         biblioteca.usuarios.append(usuario)
@@ -578,6 +621,8 @@ class TestHabilitaUsuario(TestBibliotecaBase):
 # ===========================================================================
 
 class TestDeshabilitaUsuario(TestBibliotecaBase):
+    """Deshabilita usuario existente, no encontrado, excepción y no en lista local."""
+
     def test_deshabilita_usuario_existente(self):
         usuario = Usuario(1, "Ana", "López", "ana@mail.com", habilitado=True)
         biblioteca.usuarios.append(usuario)
@@ -599,9 +644,7 @@ class TestDeshabilitaUsuario(TestBibliotecaBase):
         self.assertEqual(biblioteca.ultimo_error, "Usuario no encontrado")
 
     def test_error_excepcion_en_bd(self):
-        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(
-            side_effect=Exception("fallo")
-        )
+        biblioteca.usuarioDAO.get_usuario_id_bd = MagicMock(side_effect=Exception("fallo"))
 
         resultado = biblioteca.deshabilita_usuario(1)
 
@@ -619,5 +662,59 @@ class TestDeshabilitaUsuario(TestBibliotecaBase):
         self.assertTrue(resultado)
 
 
+# ===========================================================================
+# get_logs_usuario
+# ===========================================================================
+
+class TestGetLogsUsuario(TestBibliotecaBase):
+    """Obtiene logs por usuario exitosamente y fallo con excepción."""
+
+    def test_retorna_logs_del_usuario(self):
+        logs_mock = [MagicMock(), MagicMock()]
+        biblioteca.logDAO.obtener_logs_por_usuario = MagicMock(return_value=logs_mock)
+
+        resultado = biblioteca.get_logs_usuario(1)
+
+        self.assertEqual(resultado, logs_mock)
+        self.assertEqual(biblioteca.ultimo_error, "")
+
+    def test_excepcion_devuelve_lista_vacia_y_guarda_error(self):
+        biblioteca.logDAO.obtener_logs_por_usuario = MagicMock(
+            side_effect=Exception("DB error")
+        )
+
+        resultado = biblioteca.get_logs_usuario(1)
+
+        self.assertEqual(resultado, [])
+        self.assertEqual(biblioteca.ultimo_error, "DB error")
+
+
+# ===========================================================================
+# get_logs_libro
+# ===========================================================================
+
+class TestGetLogsLibro(TestBibliotecaBase):
+    """Obtiene logs por libro exitosamente y fallo con excepción."""
+
+    def test_retorna_logs_del_libro(self):
+        logs_mock = [MagicMock(), MagicMock()]
+        biblioteca.logDAO.obtener_logs_por_libro = MagicMock(return_value=logs_mock)
+
+        resultado = biblioteca.get_logs_libro(1)
+
+        self.assertEqual(resultado, logs_mock)
+        self.assertEqual(biblioteca.ultimo_error, "")
+
+    def test_excepcion_devuelve_lista_vacia_y_guarda_error(self):
+        biblioteca.logDAO.obtener_logs_por_libro = MagicMock(
+            side_effect=Exception("DB error")
+        )
+
+        resultado = biblioteca.get_logs_libro(1)
+
+        self.assertEqual(resultado, [])
+        self.assertEqual(biblioteca.ultimo_error, "DB error")
+
+
 if __name__ == "__main__":
-    unittest.main(verbosity=2)
+    unittest.main()

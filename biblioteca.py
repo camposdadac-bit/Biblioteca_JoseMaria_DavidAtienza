@@ -378,6 +378,7 @@ def buscar_por_autor(autor_buscar):
     return resultados
 
 def get_logs_usuario(id_usuario):
+    """Obtiene los logs por ususario"""
     global ultimo_error
 
     try:
@@ -391,6 +392,7 @@ def get_logs_usuario(id_usuario):
         return []
 
 def get_logs_libro(id_libro):
+    """Obtiene los logs por libros"""
     global ultimo_error
 
     try:
