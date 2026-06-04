@@ -78,7 +78,7 @@ def agregar_libro(titulo, autor, isbn=None):
 def buscar_libro(titulo):
     """Se encarga de buscar un libro especifico en la base de datos a través del titulo introducido"""
     for libro in bd:
-        if libro.get("titulo") == titulo:
+        if libro.titulo == titulo:
             return libro
     return None
 
