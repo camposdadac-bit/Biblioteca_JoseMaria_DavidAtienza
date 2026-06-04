@@ -47,8 +47,6 @@ class PrestamoDAO:
         prestamos = []
 
         for fila in filas:
-            prestamos.append(
-                Prestamo(fila[0],fila[1],fila[2],fila[3],fila[4])
-            )
+            prestamos.append(Prestamo(fila[0],fila[1],fila[2],fila[3],fila[4]))
 
         return prestamos
