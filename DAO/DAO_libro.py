@@ -7,7 +7,7 @@ RUTA_BD = Path(__file__).resolve().parent.parent / "bd" / "biblioteca.db"
 class DAO_libro:
     @staticmethod
     def insertar_en_bd(titulo, autor, disponible, isbn):
-        """Inserta una nueva fila en la base de datos y devuelve el ID generado."""
+        """Inserta una nueva fila en la base de datos y devuelve el ID generado"""
         val_disponible = 1 if disponible else 0
         conexion = sqlite3.connect(RUTA_BD, timeout=10.0)
         try:
@@ -23,7 +23,7 @@ class DAO_libro:
 
     @staticmethod
     def seleccionar_por_id(id_libro):
-        """Busca una fila por ID y la transforma en un objeto Libro."""
+        """Busca una fila por ID y la transforma en un objeto Libro"""
         conexion = sqlite3.connect(RUTA_BD, timeout=10.0)
         try:
             fila = conexion.execute(
@@ -37,7 +37,7 @@ class DAO_libro:
 
     @staticmethod
     def seleccionar_todos():
-        """Trae todas las filas de la tabla libros de la base de datos."""
+        """Trae todas las filas de la tabla libros de la base de datos"""
         conexion = sqlite3.connect(RUTA_BD, timeout=10.0)
         try:
             filas = conexion.execute("SELECT id, titulo, autor, disponible, isbn FROM libros").fetchall()
@@ -50,7 +50,7 @@ class DAO_libro:
 
     @staticmethod
     def modificar_en_bd(id_libro, titulo, autor, disponible, isbn):
-        """Actualiza los datos de un libro existente en la base de datos."""
+        """Actualiza los datos de un libro existente en la base de datos"""
         val_disponible = 1 if disponible else 0
         conexion = sqlite3.connect(RUTA_BD, timeout=10.0)
         try:
@@ -64,7 +64,7 @@ class DAO_libro:
 
     @staticmethod
     def borrar_de_bd(id_libro):
-        """Elimina permanentemente la fila de un libro usando su ID."""
+        """Elimina permanentemente la fila de un libro usando su ID"""
         conexion = sqlite3.connect(RUTA_BD, timeout=10.0)
         try:
             conexion.execute("DELETE FROM libros WHERE id = ?", (id_libro,))

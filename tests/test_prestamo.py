@@ -31,7 +31,7 @@ class TestPrestamoInit(unittest.TestCase):
         self.assertIsNone(prestamo.fecha_devolucion)
 
     def test_estado_no_se_guarda_como_atributo(self):
-        # El parámetro 'estado' existe en la firma pero no se asigna en __init__
+        """ El parámetro 'estado' existe en la firma pero no se asigna en __init__"""
         prestamo = Prestamo(1, 1, 1, estado="devuelto")
         self.assertFalse(hasattr(prestamo, "estado"))
 

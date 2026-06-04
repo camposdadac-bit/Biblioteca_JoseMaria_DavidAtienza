@@ -6,8 +6,8 @@ RUTA_BD = Path(__file__).resolve().parent.parent / "bd" / "biblioteca.db"
 
 
 class PrestamoDAO:
-
     def registrar_prestamo(self,libro_id,usuario_id,fecha_prestamo,fecha_devolucion):
+        """Insertar en la tabla prestamos los datos que le hemos pasado"""
         with sqlite3.connect(RUTA_BD) as conexion:
             cursor = conexion.cursor()
 
@@ -20,6 +20,7 @@ class PrestamoDAO:
             return cursor.lastrowid
 
     def tiene_prestamo_activo(self, libro_id):
+        """Esto lo que te dice es si el libre esta prestado o no lo esta"""
         with sqlite3.connect(RUTA_BD) as conexion:
             fila = conexion.execute(
                 """SELECT 1 FROM prestamos WHERE libro_id = ? LIMIT 1""",
@@ -29,6 +30,7 @@ class PrestamoDAO:
         return fila is not None
 
     def devolver_prestamo(self, libro_id):
+        """Esto lo que te dice es que elimina de la tabla prestamos el libro para que se pueda prestar"""
         with sqlite3.connect(RUTA_BD) as conexion:
             conexion.execute(
                 """DELETE FROM prestamos WHERE libro_id = ?""",
@@ -38,6 +40,7 @@ class PrestamoDAO:
             conexion.commit()
 
     def listar_prestamos_usuario(self, usuario_id):
+        """Listo todos los prestamos que hay en ese momento lo ordena por fecha"""
         with sqlite3.connect(RUTA_BD) as conexion:
             filas = conexion.execute(
                 """SELECT id_prestamo,libro_id,usuario_id,fecha_prestamo,fecha_devolucion FROM prestamos WHERE usuario_id = ? ORDER BY fecha_prestamo""",
