@@ -6,8 +6,8 @@ RUTA_BD = Path(__file__).resolve().parent.parent / "bd" / "biblioteca.db"
 
 
 class LogDAO:
-    """Insertar los logs en la base de datos"""
     def insertar_log(self,usuario_id,usuario_nombre,accion,libro_id,libro_titulo):
+        """Insertar los logs en la base de datos"""
         with sqlite3.connect(RUTA_BD) as conn:
             cursor = conn.cursor()
 
@@ -18,8 +18,9 @@ class LogDAO:
 
             conn.commit()
             return cursor.lastrowid
-    """Obtiene el log del usuario que tu le hayas dicho"""
+
     def obtener_logs_por_usuario(self, usuario_id):
+        """Obtiene el log del usuario que tu le hayas dicho"""
         with sqlite3.connect(RUTA_BD) as conn:
             filas = conn.execute(
                 """SELECT id_log,usuario_id,usuario_nombre,accion,libro_id,libro_titulo FROM log WHERE usuario_id = ? ORDER BY id_log DESC""",
@@ -31,8 +32,8 @@ class LogDAO:
             for f in filas
         ]
 
-    """Obtiene el log del log que tu le hayas dicho"""
     def obtener_logs_por_libro(self, libro_id):
+        """Obtiene el log del log que tu le hayas dicho"""
         with sqlite3.connect(RUTA_BD) as conn:
             filas = conn.execute(
                 """SELECT id_log, usuario_id,usuario_nombre,accion,libro_id,libro_titulo FROM log WHERE libro_id = ? ORDER BY id_log DESC""",
