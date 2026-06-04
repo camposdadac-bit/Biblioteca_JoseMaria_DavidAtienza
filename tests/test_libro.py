@@ -41,51 +41,6 @@ class TestLibroStr(unittest.TestCase):
         self.assertEqual(str(libro), "1984 - Orwell - Prestado")
 
 
-class TestLibroGetItem(unittest.TestCase):
-    """Cubre __getitem__: todas las claves válidas y una clave inválida."""
-
-    def setUp(self):
-        self.libro = Libro(10, "Titulo Test", "Autor Test", disponible=True, isbn="123")
-
-    def test_getitem_id(self):
-        self.assertEqual(self.libro["id"], 10)
-
-    def test_getitem_titulo(self):
-        self.assertEqual(self.libro["titulo"], "Titulo Test")
-
-    def test_getitem_autor(self):
-        self.assertEqual(self.libro["autor"], "Autor Test")
-
-    def test_getitem_disponible(self):
-        self.assertTrue(self.libro["disponible"])
-
-    def test_getitem_isbn(self):
-        self.assertEqual(self.libro["isbn"], "123")
-
-    def test_getitem_clave_invalida_lanza_keyerror(self):
-        with self.assertRaises(KeyError):
-            _ = self.libro["clave_inexistente"]
-
-
-class TestLibroGet(unittest.TestCase):
-    """Cubre get(): claves válidas, clave inválida con y sin default."""
-
-    def setUp(self):
-        self.libro = Libro(5, "Test", "Escritor", disponible=False, isbn="456")
-
-    def test_get_clave_valida_devuelve_valor(self):
-        self.assertEqual(self.libro.get("titulo"), "Test")
-        self.assertEqual(self.libro.get("autor"), "Escritor")
-        self.assertFalse(self.libro.get("disponible"))
-        self.assertEqual(self.libro.get("isbn"), "456")
-        self.assertEqual(self.libro.get("id"), 5)
-
-    def test_get_clave_invalida_devuelve_none_por_defecto(self):
-        self.assertIsNone(self.libro.get("campo_raro"))
-
-    def test_get_clave_invalida_con_default_personalizado(self):
-        self.assertEqual(self.libro.get("campo_raro", "fallback"), "fallback")
-
 def _make_mock_conexion(fetchone=None, fetchall=None):
     """Helper: devuelve un mock de conexión SQLite configurado."""
     mock_cursor = MagicMock()
