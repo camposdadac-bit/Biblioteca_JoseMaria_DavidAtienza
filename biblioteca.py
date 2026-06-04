@@ -212,13 +212,7 @@ def habilita_usuario(id_usuario):
             ultimo_error = "Usuario no encontrado"
             return False
 
-        usuarioDAO.update_usuario_bd(
-            id_usuario,
-            usuario.nombre,
-            usuario.apellidos,
-            usuario.email,
-            True
-        )
+        usuarioDAO.update_usuario_bd(id_usuario,usuario.nombre,usuario.apellidos,usuario.email,True)
 
         for u in usuarios:
             if u.id == id_usuario:
@@ -242,13 +236,7 @@ def deshabilita_usuario(id_usuario):
             ultimo_error = "Usuario no encontrado"
             return False
 
-        usuarioDAO.update_usuario_bd(
-            id_usuario,
-            usuario.nombre,
-            usuario.apellidos,
-            usuario.email,
-            False
-        )
+        usuarioDAO.update_usuario_bd(id_usuario,usuario.nombre,usuario.apellidos,usuario.email,False)
 
         for u in usuarios:
             if u.id == id_usuario:

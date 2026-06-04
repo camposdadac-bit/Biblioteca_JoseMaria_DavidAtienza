@@ -128,35 +128,6 @@ class TestTienePrestamoActivo(unittest.TestCase):
         self.assertFalse(resultado)
 
 
-class TestGetPrestamoActivo(unittest.TestCase):
-    """Cubre get_prestamo_activo: fila encontrada y fila no encontrada."""
-
-    def test_devuelve_objeto_prestamo_cuando_existe(self):
-        fila = (1, 10, 5, date(2025, 1, 1), date(2025, 1, 31))
-        mock_conn = _mock_conexion()
-        mock_conn.execute.return_value.fetchone.return_value = fila
-
-        with patch("DAO.PrestamoDAO.sqlite3.connect", return_value=mock_conn):
-            prestamo = PrestamoDAO().get_prestamo_activo(10)
-
-        self.assertIsNotNone(prestamo)
-        self.assertIsInstance(prestamo, Prestamo)
-        self.assertEqual(prestamo.id_prestamo, 1)
-        self.assertEqual(prestamo.libro_id, 10)
-        self.assertEqual(prestamo.usuario_id, 5)
-        self.assertEqual(prestamo.fecha_prestamo, date(2025, 1, 1))
-        self.assertEqual(prestamo.fecha_devolucion, date(2025, 1, 31))
-
-    def test_devuelve_none_cuando_no_existe(self):
-        mock_conn = _mock_conexion()
-        mock_conn.execute.return_value.fetchone.return_value = None
-
-        with patch("DAO.PrestamoDAO.sqlite3.connect", return_value=mock_conn):
-            resultado = PrestamoDAO().get_prestamo_activo(99)
-
-        self.assertIsNone(resultado)
-
-
 class TestDevolverPrestamo(unittest.TestCase):
     """Cubre devolver_prestamo: DELETE ejecutado y commit realizado."""
 

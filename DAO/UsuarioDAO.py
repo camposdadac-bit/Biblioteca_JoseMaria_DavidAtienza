@@ -50,9 +50,7 @@ class UsuarioDAO:
 
         with sqlite3.connect(RUTA_BD) as conexion:
             conexion.execute(
-                """
-                UPDATE usuarios SET nombre     = ?, apellidos  = ?, email      = ?, habilitado = ? WHERE id = ?
-                """,
+                """UPDATE usuarios SET nombre     = ?, apellidos  = ?, email      = ?, habilitado = ? WHERE id = ?""",
                 (nombre, apellidos, email, val_habilitado, id_usuario)
             )
             conexion.commit()
@@ -70,9 +68,7 @@ class UsuarioDAO:
     def buscar_por_nombre_bd(self, nombre):
         with sqlite3.connect(RUTA_BD) as conexion:
             filas = conexion.execute(
-                """
-                SELECT id, nombre, apellidos, email, habilitado FROM usuarios WHERE LOWER(nombre) = LOWER(?)
-                """,
+                """SELECT id, nombre, apellidos, email, habilitado FROM usuarios WHERE LOWER(nombre) = LOWER(?)""",
                 (nombre,)
             ).fetchall()
 
@@ -84,9 +80,7 @@ class UsuarioDAO:
     def buscar_por_apellidos_bd(self, apellidos):
         with sqlite3.connect(RUTA_BD) as conexion:
             filas = conexion.execute(
-                """
-                SELECT id, nombre, apellidos, email, habilitado FROM usuarios WHERE LOWER(apellidos) = LOWER(?)
-                """,
+                """SELECT id, nombre, apellidos, email, habilitado FROM usuarios WHERE LOWER(apellidos) = LOWER(?)""",
                 (apellidos,)
             ).fetchall()
 
@@ -98,9 +92,7 @@ class UsuarioDAO:
     def buscar_por_email_bd(self, email):
         with sqlite3.connect(RUTA_BD) as conexion:
             fila = conexion.execute(
-                """
-                SELECT id, nombre, apellidos, email, habilitado FROM usuarios WHERE LOWER(email) = LOWER(?)
-                """,
+                """SELECT id, nombre, apellidos, email, habilitado FROM usuarios WHERE LOWER(email) = LOWER(?)""",
                 (email,)
             ).fetchone()
 

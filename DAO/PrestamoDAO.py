@@ -31,21 +31,6 @@ class PrestamoDAO:
 
         return fila is not None
 
-    def get_prestamo_activo(self, libro_id):
-        with sqlite3.connect(RUTA_BD) as conexion:
-            fila = conexion.execute(
-                """
-                SELECT id_prestamo,libro_id,usuario_id,fecha_prestamo,fecha_devolucion FROM prestamos WHERE libro_id = ?
-                """,
-                (libro_id,)
-            ).fetchone()
-
-        if fila is None:
-            return None
-
-        return Prestamo(fila[0],fila[1],fila[2],fila[3],fila[4]
-        )
-
     def devolver_prestamo(self, libro_id):
         with sqlite3.connect(RUTA_BD) as conexion:
             conexion.execute(
