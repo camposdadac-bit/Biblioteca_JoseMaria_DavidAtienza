@@ -28,8 +28,8 @@ class LogDAO:
             ).fetchall()
 
         return [
-            Log(f[0], f[1], f[2], f[3], f[4], f[5])
-            for f in filas
+            Log(fila[0], fila[1], fila[2], fila[3], fila[4], fila[5])
+            for fila in filas
         ]
 
     def obtener_logs_por_libro(self, libro_id):
@@ -41,6 +41,6 @@ class LogDAO:
             ).fetchall()
 
         return [
-            Log(f[0], f[1], f[2], f[3], f[4], f[5])
-            for f in filas
+            Log(fila[0], fila[1], fila[2], fila[3], fila[4], fila[5])
+            for fila in filas
         ]
