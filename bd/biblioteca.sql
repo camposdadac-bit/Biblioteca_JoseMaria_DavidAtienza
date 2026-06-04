@@ -27,6 +27,17 @@ CREATE TABLE IF NOT EXISTS prestamos (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
 );
 
+CREATE TABLE IF NOT EXISTS log (
+    id_log INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    usuario_nombre TEXT NOT NULL,
+    accion TEXT NOT NULL,
+    libro_id INTEGER NOT NULL,
+    libro_titulo TEXT NOT NULL,
+    FOREIGN KEY (libro_id) REFERENCES libros(id),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
+);
+
 CREATE TABLE IF NOT EXISTS biblioteca (
 id INTEGER PRIMARY KEY AUTOINCREMENT,
 nombre TEXT
